@@ -44,7 +44,6 @@ public class Client {
             inputStream = new DataInputStream(socket.getInputStream());
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectInputStream = new ObjectInputStream(inputStream);
-            //accepted = true;
         } catch (IOException ex) {
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Unable to connect to the address: " + this.ip + ":" + this.portNumber + " | Starting a server");

@@ -5,17 +5,13 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -35,18 +31,11 @@ import javax.swing.border.LineBorder;
 public class GUI implements ActionListener {
         
     private ServerSocket serverSocket;
-    
-    protected DataInputStream inputStream;
-    
     protected Socket socket;
 
-    protected DataOutputStream outputStream;
-    
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     
-    private int port_number = 0;
-     
     private JPanel switchPanels; 
 
     ///Swing UI
@@ -72,6 +61,9 @@ public class GUI implements ActionListener {
     private JTextArea server;
     private JTextField input;
     private JScrollPane scrollBar;
+    
+    protected Server gameServer;
+    protected Client gameClient;
     
     private boolean accepted = false;
 
@@ -132,10 +124,10 @@ public class GUI implements ActionListener {
         coverHost.add(portServer);
         coverHost.add(labelPortServer);
         
-        tabbedPane.addTab("Host", null, coverHost,
-                  "Host a game");
-        tabbedPane.addTab("Join", null, coverJoin,
-                  "Join a game");
+        tabbedPane.addTab("Hospedar", null, coverHost,
+                  "Hospedar um jogo");
+        tabbedPane.addTab("Entrar", null, coverJoin,
+                  "Entrar em um jogo");
         switchPanels.add(tabbedPane, "cover");
 
         main = new JPanel();
@@ -195,60 +187,10 @@ public class GUI implements ActionListener {
         return new Color(red, green, blue);
     }
     
-    
     public GUI() {
         clientColour = randomColors();
         setupInterface();   
     }
-    
-    private boolean connect() {
-        int portNumber = Integer.parseInt(portClient.getText());
-        String hostNumber = host.getText();
-        
-        try {
-            System.out.println("IP: " + hostNumber + " Port: " + portNumber);
-            socket = new Socket(hostNumber, portNumber);
-            //outputStream = new DataOutputStream(socket.getOutputStream());
-            //inputStream = new DataInputStream(socket.getInputStream());
-            outputStream = new DataOutputStream(socket.getOutputStream());
-            inputStream = new DataInputStream(socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(outputStream);
-            objectInputStream = new ObjectInputStream(inputStream);
-            accepted = true;
-        } catch (IOException ex) {
-            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("Unable to connect to the address: " + host.getText() + ":" + portNumber + " | Starting a server");
-            return false;
-        }
-        System.out.println("Successfully connected to the server.");
-        return true;
-    }
-
-    private void initializeServer() {
-        try {
-                int portNumber = Integer.parseInt(portServer.getText());
-                serverSocket = new ServerSocket(portNumber);
-                System.out.println("server initialized");
-        } catch (Exception e) {
-                e.printStackTrace();
-        }
-    }
-    
-    private void listenForServerRequest() {
-		try {
-                    socket = serverSocket.accept();
-                    //outputStream = new DataOutputStream(socket.getOutputStream());
-                    //inputStream = new DataInputStream(socket.getInputStream());
-                    outputStream = new DataOutputStream(socket.getOutputStream());
-                    inputStream = new DataInputStream(socket.getInputStream());
-                    objectOutputStream = new ObjectOutputStream(outputStream);
-                    objectInputStream = new ObjectInputStream(inputStream);
-                    accepted = true;
-                    System.out.println("CLIENT HAS REQUESTED TO JOIN, AND WE HAVE ACCEPTED");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
     
     class serverReader extends Thread {
 
@@ -257,7 +199,7 @@ public class GUI implements ActionListener {
             try {
                 Message message;
                 String temp = "";
-
+                
                 while (true) {
                     message = (Message) objectInputStream.readObject();
                     if(!"".equals(message.type)){
@@ -284,7 +226,7 @@ public class GUI implements ActionListener {
         }
     }
     
-    public void communicate() {
+    public void writeMessage() {
 
         try {
             Message newMessage = new Message("CHAT", input.getText());
@@ -296,47 +238,27 @@ public class GUI implements ActionListener {
         input.setText("");
     }
     
-    public void closeConnections() {
-        try {
-            inputStream.close();
-            outputStream.close();
-            this.socket.close();
-        } catch (IOException i) {
-            System.out.println(i);
-        }
-    }
-    
     @Override
     public void actionPerformed(ActionEvent e) {
 
         CardLayout changePages = (CardLayout) (switchPanels.getLayout());
-
-        if (e.getSource() == runJoin  && portClient.getText().length() < 1) {
-
-            JOptionPane.showMessageDialog(null, "All forms must be filled!");
-
-        }
-        if (e.getSource() == runJoin  && portClient.getText().length() > 0) {
-            connect();
-            new serverReader().start();
-            changePages.show(switchPanels, "main");
-            window.setSize(800, 600);
-            window.setLayout(new GridLayout(2,0));
-            game = new GameController(this.objectInputStream, this.objectOutputStream, false);
-            window.add(game);
-        }
         
         if (e.getSource() == runHost && portServer.getText().length() < 1) {
 
-            JOptionPane.showMessageDialog(null, "A port number must be entered!");
+            JOptionPane.showMessageDialog(null, "Por favor, digite um número para a porta");
         }
 
         if (e.getSource() == runHost && portServer.getText().length() > 0) {
-
-            initializeServer();
-            if (!accepted) {
-                listenForServerRequest();
+            int portNumber = Integer.parseInt(portServer.getText());
+            gameServer = new Server(portNumber);
+            gameServer.initializeServer();
+            if (!gameServer.connectionAccepted) {
+                gameServer.listenForRequest();
             }
+            
+            this.objectInputStream = gameServer.objectInputStream;
+            this.objectOutputStream = gameServer.objectOutputStream;
+            
             new serverReader().start();
             
             changePages.show(switchPanels, "main");
@@ -346,10 +268,34 @@ public class GUI implements ActionListener {
             window.add(game);
             
         }
+
+        if (e.getSource() == runJoin  && portClient.getText().length() < 1) {
+
+            JOptionPane.showMessageDialog(null, "Por favor, digite o endereço IP e a porta.");
+
+        }
+        if (e.getSource() == runJoin  && portClient.getText().length() > 0) {
+            
+            int portNumber = Integer.parseInt(portClient.getText());
+            String hostNumber = host.getText();
+      
+            this.gameClient = new Client(hostNumber, portNumber);
+            boolean connectionAccepted = gameClient.connect();
+            
+            this.objectInputStream = gameClient.objectInputStream;
+            this.objectOutputStream = gameClient.objectOutputStream;
+            
+            new serverReader().start();
+            changePages.show(switchPanels, "main");
+            window.setSize(800, 600);
+            window.setLayout(new GridLayout(2,0));
+            game = new GameController(this.objectInputStream, this.objectOutputStream, false);
+            window.add(game);
+        }
         
         if (!input.getText().equals("")) {
             // user message input
-            communicate();
+            writeMessage();
         }
     }
     

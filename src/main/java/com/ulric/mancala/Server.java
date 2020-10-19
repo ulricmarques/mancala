@@ -39,7 +39,7 @@ public class Server {
         }
     }
     
-    private void listenForRequest() {
+    public void listenForRequest() {
         try {
             socket = serverSocket.accept();
             outputStream = new DataOutputStream(socket.getOutputStream());
