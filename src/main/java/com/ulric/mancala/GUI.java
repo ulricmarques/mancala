@@ -13,10 +13,14 @@ import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,6 +47,9 @@ public class GUI implements ActionListener {
 
     protected DataOutputStream outputStream;
     
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
+    
     private int port_number = 0;
      
     private JPanel switchPanels; 
@@ -52,7 +59,7 @@ public class GUI implements ActionListener {
 
     private JPanel coverHost, coverJoin;
     private JPanel main;
-    private JPanel game;
+    private GameController game;
     private JTextField host;
     private JTextField port;
     private JTextField clientName;
@@ -113,7 +120,6 @@ public class GUI implements ActionListener {
         runJoin.setBounds(200, 250, 100, 50);
         runJoin.addActionListener(this);
         coverJoin.add(runJoin);
-        
         
         // Panel for hosting
         coverHost = new JPanel();
@@ -213,8 +219,13 @@ public class GUI implements ActionListener {
             socket = new Socket(hostNumber, portNumber);
             //outputStream = new DataOutputStream(socket.getOutputStream());
             //inputStream = new DataInputStream(socket.getInputStream());
+            outputStream = new DataOutputStream(socket.getOutputStream());
+            inputStream = new DataInputStream(socket.getInputStream());
+            objectOutputStream = new ObjectOutputStream(outputStream);
+            objectInputStream = new ObjectInputStream(inputStream);
             accepted = true;
-        } catch (IOException e) {
+        } catch (IOException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Unable to connect to the address: " + host.getText() + ":" + portNumber + " | Starting a server");
             return false;
         }
@@ -237,6 +248,10 @@ public class GUI implements ActionListener {
                     socket = serverSocket.accept();
                     //outputStream = new DataOutputStream(socket.getOutputStream());
                     //inputStream = new DataInputStream(socket.getInputStream());
+                    outputStream = new DataOutputStream(socket.getOutputStream());
+                    inputStream = new DataInputStream(socket.getInputStream());
+                    objectOutputStream = new ObjectOutputStream(outputStream);
+                    objectInputStream = new ObjectInputStream(inputStream);
                     accepted = true;
                     System.out.println("CLIENT HAS REQUESTED TO JOIN, AND WE HAVE ACCEPTED");
 		} catch (IOException e) {
@@ -249,19 +264,30 @@ public class GUI implements ActionListener {
         @Override
         public void run() {
             try {
-                String message = "";
-                String temp;
+                Message message;
+                String temp = "";
 
                 while (true) {
-                    temp = inputStream.readUTF();
-                    if(temp != ""){
-                        System.out.println("setou a mensagem: " + message);
-                        message = message + temp + "\n";
-                        server.setText(message);
+                    message = (Message) objectInputStream.readObject();
+                    if(!"".equals(message.type)){
+                        System.out.println("Tipo da mensagem: " + message.type);
+                        if(message.type.equals("CHAT")){
+                            if(!"".equals(message.text)){
+                                System.out.println("setou a mensagem: " + message.text);
+                                temp = temp + message.text + "\n";
+                                server.setText(temp);
+                            }
+                        }
+                        
+                        if(message.type.equals("GAME")){
+                            System.out.println("Tipo game");
+                            game.updateBoard(message.boardState, message.switchTurn);
+                        }
+                        
                     }
+                    
                         
                 }
-
             } catch (Exception e) {
             }
         }
@@ -270,15 +296,12 @@ public class GUI implements ActionListener {
     public void communicate() {
 
         try {
-            String message = input.getText();
-            outputStream.writeUTF(message);
-            outputStream.flush();
-            
-
+            Message newMessage = new Message("CHAT", input.getText());
+            objectOutputStream.writeObject(newMessage);
+            objectOutputStream.flush();          
         } catch (IOException i) {
             System.out.println("Error " + i);
         }
-
         input.setText("");
     }
     
@@ -308,8 +331,7 @@ public class GUI implements ActionListener {
             changePages.show(switchPanels, "main");
             window.setSize(800, 600);
             window.setLayout(new GridLayout(2,0));
-            game = new JPanel();
-            game = new GameController(this.socket, false);
+            game = new GameController(this.objectInputStream, this.objectOutputStream, false);
             window.add(game);
         }
         
@@ -324,14 +346,14 @@ public class GUI implements ActionListener {
             if (!accepted) {
                 listenForServerRequest();
             }
-            //new serverReader().start();
+            new serverReader().start();
             
             changePages.show(switchPanels, "main");
             window.setSize(800, 600);
             window.setLayout(new GridLayout(2,0));
-            game = new JPanel();
-            game = new GameController(this.socket, true);
+            game = new GameController(this.objectInputStream, this.objectOutputStream, true);
             window.add(game);
+            
         }
         
         if (!input.getText().equals("")) {

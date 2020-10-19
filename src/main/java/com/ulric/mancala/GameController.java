@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.ulric.mancala;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
@@ -17,7 +11,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +29,6 @@ class GameController extends JPanel implements Runnable, MouseListener {
         
         private ObjectInputStream objectInputStream;
         private ObjectOutputStream objectOutputStream;
-        
         
         private boolean playerOne;
         private boolean playerOneTurn;
@@ -66,20 +58,20 @@ class GameController extends JPanel implements Runnable, MouseListener {
 	/**
 	 * Initialize the class
 	 */
-	public GameController(Socket socket, boolean playerOne) {
+	public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, boolean playerOne) {
 		board = new Board(Color.blue, Color.red);
-                try {
+//                try {
                     //this.inputStream = inputStream;
                     //this.outputStream = outputStream;
 //                    objectOutputStream = new ObjectOutputStream(outputStream);
 //                    objectInputStream = new ObjectInputStream(inputStream);
-                outputStream = new DataOutputStream(socket.getOutputStream());
-                inputStream = new DataInputStream(socket.getInputStream());
-                objectOutputStream = new ObjectOutputStream(outputStream);
-                objectInputStream = new ObjectInputStream(inputStream);
-                } catch (IOException ex) {
-                    Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-                }
+//                outputStream = new DataOutputStream(socket.getOutputStream());
+//                inputStream = new DataInputStream(socket.getInputStream());
+                    this.objectOutputStream = objectOutputStream;
+                    this.objectInputStream = objectInputStream;
+//                } catch (IOException ex) {
+//                    Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+//                }
                 
                 this.playerOne = playerOne;
                 
@@ -95,31 +87,21 @@ class GameController extends JPanel implements Runnable, MouseListener {
         
         public void run() {
 		while (true) {
-                    boardListener();
+                    //boardListener();
                     repaint();              	
 		}
 	}
         
-        private void boardListener() {
-		if (!playerOneTurn) {
-			try {
-                                System.out.println("My turn: "+ playerOneTurn);
-                                System.out.println("Waiting for opponent...");
-				GameMessage gameMessage = (GameMessage) objectInputStream.readObject();
-                                System.out.println("Recebeu: "+ pitStones[6]);
-                                pitStones = gameMessage.boardState;
-                                repaint();
-                                if(gameMessage.switchTurn){
-                                    playerOneTurn = true;
-                                }
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException ex) {
-                        Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-		}
-	}
-
+        public void updateBoard(int[] boardState, boolean switchTurn){
+            System.out.println("Entrou no update");
+            pitStones = boardState;
+            repaint();
+            if(switchTurn){
+                playerOneTurn = true;
+            }
+            
+        }
+        
 	/**
 	 * Perform a player's turn by moving the stones between pits
 	 * @param pit the pit selected by the user
@@ -334,8 +316,8 @@ class GameController extends JPanel implements Runnable, MouseListener {
                                         playerOneTurn = false;
                                     }
 
-                                    GameMessage newGameMessage = new GameMessage(switchBoardView(), shouldSwitch);
-                                    objectOutputStream.writeObject(newGameMessage);
+                                    Message newMessage = new Message("GAME", switchBoardView(), shouldSwitch);
+                                    objectOutputStream.writeObject(newMessage);
                                     objectOutputStream.flush();
                                     System.out.println("Enviou: "+pitStones[6]);
                             }
