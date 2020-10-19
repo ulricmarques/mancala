@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.ulric.mancala;
 
 import java.awt.CardLayout;
@@ -61,12 +56,18 @@ public class GUI implements ActionListener {
     private JPanel main;
     private GameController game;
     private JTextField host;
-    private JTextField port;
-    private JTextField clientName;
+    
+    private JTextField portServer;
+    private JTextField portClient;
+
     private JButton runHost, runJoin;
     private Color clientColour;
-    private JLabel labels_cover[];
-    private JLabel labels_port;
+    
+    private JLabel labelIP;
+    private JLabel labelPortServer;
+    private JLabel labelPortClient;
+    private JLabel labelMessageWrite;
+    private JLabel labelMessageRead;
 
     private JTextArea server;
     private JTextField input;
@@ -74,50 +75,39 @@ public class GUI implements ActionListener {
     
     private boolean accepted = false;
 
-
-    public void runPanel() {
+    public void setupInterface() {
        
         window = new JFrame("Cliente");
+        
         JTabbedPane tabbedPane = new JTabbedPane();
      
-        labels_cover = new JLabel[6];
         switchPanels = new JPanel(new CardLayout());
 
         coverJoin = new JPanel();
-        coverJoin.setLayout(null); // Setting to layout to null, so it becomes absolute position
+        coverJoin.setLayout(null); 
         coverJoin.setSize(300, 400);
-
-        clientName = new JTextField();
-        clientName.setBounds(60, 60, 400, 40);
-        clientName.addActionListener(this);
-        labels_cover[0] = new JLabel("Please enter your name");
-        labels_cover[0].setBounds(60, 30, 300, 40);
-        coverJoin.add(clientName);
-        coverJoin.add(labels_cover[0]);
-
 
         host = new JTextField();
         host.setBounds(60, 120, 400, 40);
         host.setText("localhost");
         host.addActionListener(this);
-        labels_cover[1] = new JLabel("Please enter your host");
-        labels_cover[1].setBounds(60, 90, 300, 40);
-        coverJoin.add(labels_cover[1]);
+        labelIP = new JLabel("Digite o IP");
+        labelIP.setBounds(60, 90, 300, 40);
+        coverJoin.add(labelIP);
         coverJoin.add(host);
 
-
-        port = new JTextField();
-        port.setBounds(60, 180, 400, 40);
-        port.addActionListener(this);
-        port.setText("5000");
-        labels_cover[2] = new JLabel("Please enter your port number");
-        labels_cover[2].setBounds(60, 150, 300, 40);
-        coverJoin.add(labels_cover[2]);
-        coverJoin.add(port);
+        portClient = new JTextField();
+        portClient.setBounds(60, 180, 400, 40);
+        portClient.addActionListener(this);
+        portClient.setText("5000");
+        labelPortClient = new JLabel("Digite a porta");
+        labelPortClient.setBounds(60, 150, 300, 40);
+        coverJoin.add(labelPortClient);
+        coverJoin.add(portClient);
 
         // Button for the user to leave the chat system
-        runJoin = new JButton("Run Client");
-        runJoin.setBounds(200, 250, 100, 50);
+        runJoin = new JButton("Iniciar cliente");
+        runJoin.setBounds(200, 250, 120, 50);
         runJoin.addActionListener(this);
         coverJoin.add(runJoin);
         
@@ -125,21 +115,22 @@ public class GUI implements ActionListener {
         coverHost = new JPanel();
         coverHost.setLayout(null); // Setting to layout to null, so it becomes absolute position
 
-        port = new JTextField();
-        port.setBounds(60, 60, 400, 40);
-        port.addActionListener(this);
-        port.setText("5000");
-        labels_port = new JLabel("Please enter your port number");
-        labels_port.setBounds(60, 30, 400, 40);
+        portServer = new JTextField();
+        portServer.setBounds(60, 60, 400, 40);
+        portServer.addActionListener(this);
+        portServer.setText("5000");
+        labelPortServer = new JLabel("Digite a porta:");
+        labelPortServer.setBounds(60, 30, 400, 40);
+        
 
         // Button for the user to leave the chat system
-        runHost = new JButton("Run Server");
-        runHost.setBounds(200, 100, 100, 50);
+        runHost = new JButton("Iniciar servidor");
+        runHost.setBounds(200, 100, 120, 50);
         runHost.addActionListener(this);
 
         coverHost.add(runHost);
-        coverHost.add(port);
-        coverHost.add(labels_port);
+        coverHost.add(portServer);
+        coverHost.add(labelPortServer);
         
         tabbedPane.addTab("Host", null, coverHost,
                   "Host a game");
@@ -166,13 +157,13 @@ public class GUI implements ActionListener {
 
     public void mainInterface() {
         
-        window.setTitle(this.clientName.getText());
+        window.setTitle("Mancala");
         main.setBackground(clientColour);
 
-        labels_cover[3] = new JLabel("Display Messages:");
-        labels_cover[3].setForeground(Color.white);
-        labels_cover[3].setBounds(30, -5, 300, 40);
-        main.add(labels_cover[3]);
+        labelMessageRead = new JLabel("Mensagens recebidas:");
+        labelMessageRead.setForeground(Color.white);
+        labelMessageRead.setBounds(30, -5, 300, 40);
+        main.add(labelMessageRead);
 
         Border thinBorder = LineBorder.createBlackLineBorder();
         server = new JTextArea();
@@ -183,10 +174,10 @@ public class GUI implements ActionListener {
 
         main.add(scrollBar);
 
-        labels_cover[4] = new JLabel("Enter message here");
-        labels_cover[4].setForeground(Color.white);
-        labels_cover[4].setBounds(30, 180, 300, 40);
-        main.add(labels_cover[4]);
+        labelMessageWrite = new JLabel("Digite sua mensagem: ");
+        labelMessageWrite.setForeground(Color.white);
+        labelMessageWrite.setBounds(30, 180, 300, 40);
+        main.add(labelMessageWrite);
 
         input = new JTextField();
         input.setBounds(20, 220, 450, 30);
@@ -207,11 +198,11 @@ public class GUI implements ActionListener {
     
     public GUI() {
         clientColour = randomColors();
-        runPanel();   
+        setupInterface();   
     }
     
     private boolean connect() {
-        int portNumber = Integer.parseInt(port.getText());
+        int portNumber = Integer.parseInt(portClient.getText());
         String hostNumber = host.getText();
         
         try {
@@ -235,7 +226,7 @@ public class GUI implements ActionListener {
 
     private void initializeServer() {
         try {
-                int portNumber = Integer.parseInt(port.getText());
+                int portNumber = Integer.parseInt(portServer.getText());
                 serverSocket = new ServerSocket(portNumber);
                 System.out.println("server initialized");
         } catch (Exception e) {
@@ -320,12 +311,12 @@ public class GUI implements ActionListener {
 
         CardLayout changePages = (CardLayout) (switchPanels.getLayout());
 
-        if (e.getSource() == runJoin  && port.getText().length() < 1 && clientName.getText().length() < 1) {
+        if (e.getSource() == runJoin  && portClient.getText().length() < 1) {
 
             JOptionPane.showMessageDialog(null, "All forms must be filled!");
 
         }
-        if (e.getSource() == runJoin  && port.getText().length() > 0 && clientName.getText().length() > 0) {
+        if (e.getSource() == runJoin  && portClient.getText().length() > 0) {
             connect();
             new serverReader().start();
             changePages.show(switchPanels, "main");
@@ -335,12 +326,12 @@ public class GUI implements ActionListener {
             window.add(game);
         }
         
-        if (e.getSource() == runHost && port.getText().length() < 1) {
+        if (e.getSource() == runHost && portServer.getText().length() < 1) {
 
             JOptionPane.showMessageDialog(null, "A port number must be entered!");
         }
 
-        if (e.getSource() == runHost && port.getText().length() > 0) {
+        if (e.getSource() == runHost && portServer.getText().length() > 0) {
 
             initializeServer();
             if (!accepted) {
