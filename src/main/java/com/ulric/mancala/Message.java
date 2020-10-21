@@ -12,6 +12,7 @@ public class Message implements Serializable{
     protected String text;
     protected int[] boardState;
     protected boolean switchTurn;
+    protected int winningPlayer;
     
     public Message(String type, int[] boardState, boolean switchTurn){
         this.type = type;

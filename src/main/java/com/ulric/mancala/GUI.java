@@ -73,18 +73,14 @@ public class GUI extends Thread {
             while (true) {
                 message = (Message) objectInputStream.readObject();
                 if(!"".equals(message.type)){
-                    System.out.println("Tipo da mensagem: " + message.type);
                     if(message.type.equals("CHAT")){
                         if(!"".equals(message.text)){
-                            System.out.println("setou a mensagem: " + message.text);
                             temp = temp + message.text + "\n";
                             mainScreen.server.setText(temp);
                         }
                     }
-
                     if(message.type.equals("GAME")){
-                        System.out.println("Tipo game");
-                        game.updateBoard(message.boardState, message.switchTurn);
+                        game.updateGameState(message.boardState, message.switchTurn);
                     }
                 }
             }

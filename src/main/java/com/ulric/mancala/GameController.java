@@ -1,8 +1,8 @@
 package com.ulric.mancala;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -17,319 +17,271 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-@SuppressWarnings("serial")
-class GameController extends JPanel implements Runnable, MouseListener {
+/**
+ *
+ * @author Ulric
+ */
+class GameController extends JPanel implements MouseListener {
 
-	final Board board;
-        
-        private Thread thread;
-        
-        private DataInputStream inputStream;
-        private DataOutputStream outputStream;
-        
-        private ObjectInputStream objectInputStream;
-        private ObjectOutputStream objectOutputStream;
-        
-        private boolean playerOne;
-        private boolean playerOneTurn;
-        
-	/**
-	 * Defines the amount of stones in the pits
-	 */
-	private int[] pitStones = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
+    final Board board;
 
-	/**
-	 * The player currently having a turn.
-	 * Cannot be any number besides 1 or 2
-	 */
-	private int currentPlayer = 1;
+    private DataInputStream inputStream;
+    private DataOutputStream outputStream;
 
-	/**
-	 * Determines when the game is won and who by
-	 *
-	 * Valid values:
-	 * -1 = game has not ended
-	 *  0 = game ended in tie
-	 *  1 = player 1 won
-	 *  2 = player 2 won
-	 */
-	private int winningPlayer = -1;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
 
-	/**
-	 * Initialize the class
-	 */
-	public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, boolean playerOne) {
-		board = new Board(Color.blue, Color.red);
-//                try {
-                    //this.inputStream = inputStream;
-                    //this.outputStream = outputStream;
-//                    objectOutputStream = new ObjectOutputStream(outputStream);
-//                    objectInputStream = new ObjectInputStream(inputStream);
-//                outputStream = new DataOutputStream(socket.getOutputStream());
-//                inputStream = new DataInputStream(socket.getInputStream());
-                    this.objectOutputStream = objectOutputStream;
-                    this.objectInputStream = objectInputStream;
-//                } catch (IOException ex) {
-//                    Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-                
-                this.playerOne = playerOne;
-                
-                playerOneTurn = this.playerOne == true;
-                System.out.println("P1Turn: " + playerOneTurn);
-                              
-		setBorder(BorderFactory.createLineBorder(Color.black));
-		addMouseListener(this);
-                
-                thread = new Thread(this, "Mancala");
-		thread.start();
-	}
-        
-        public void run() {
-		while (true) {
-                    //boardListener();
-                    repaint();              	
-		}
-	}
-        
-        public void updateBoard(int[] boardState, boolean switchTurn){
-            System.out.println("Entrou no update");
-            pitStones = boardState;
-            repaint();
-            if(switchTurn){
-                playerOneTurn = true;
-            }
-            
+    private final boolean goesFirst;
+    private boolean yourTurn;
+    private boolean youWon = false;
+    private boolean draw = false;
+    private boolean gameEnded = false;
+
+    private final Font stonesFont = new Font("Arial", Font.BOLD, 15);
+    private final Font infoFont = new Font("Arial", Font.BOLD, 12);
+
+    private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
+
+
+    public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, boolean goesFirst) {
+        board = new Board(Color.blue, Color.red);
+
+        this.objectOutputStream = objectOutputStream;
+        this.objectInputStream = objectInputStream;
+
+        this.goesFirst = goesFirst;
+
+        yourTurn = this.goesFirst == true;
+
+        setBorder(BorderFactory.createLineBorder(Color.black));
+        addMouseListener(this);      
+    }
+
+    public void updateGameState(int[] boardState, boolean switchTurn){
+        currentBoardState = boardState;
+        checkForWin();
+        repaint();
+        if(switchTurn){
+            yourTurn = true;
         }
-        
-	/**
-	 * Perform a player's turn by moving the stones between pits
-	 * @param pit the pit selected by the user
-	 * @return whether the user's turn is ended
-	 */
-	protected boolean moveStones(final int pit) {
-		int pointer = pit;
+    }
 
-		// return if pit has no stones
-		if ( pitStones[pit] < 1 ) {
-			return true;
-		}
+    public int[] restartGame(){
+        int[] initialBoard = { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
+        return initialBoard;
+    }
 
-		// take stones out of pit
-		int stones = pitStones[pit];
-		pitStones[pit] = 0;
+    protected boolean moveStones(final int cup) {
+        int counter = cup;
 
-		while ( stones > 0 ) {
-			++pointer;
+        // Checa se a casa está vazia.
+        if (currentBoardState[cup] < 1 ) {
+            return true;
+        }
 
-			// skip other player's storage pit and reset pointer
-			if (pointer == 13) {
-				pointer = 0;
-			} else {
-				pitStones[pointer]++;
-				stones--;
-			}
-			repaint();
-		}
+        // Retira todas as pedras da casa.
+        int stones = currentBoardState[cup];
+        currentBoardState[cup] = 0;
 
-		// set to point to the opposite pit
-		int inversePointer = -pointer + 12;
+        while(stones > 0) {
+            counter++;
 
-		// Check for capture
-		if (pointer < 6 && pitStones[pointer] == 1 && pitStones[inversePointer] > 0) {
-
-			// Transfer this stone along with opposite pit's stones to store
-			pitStones[6] += pitStones[inversePointer] + 1;
-
-			// Clear the pits
-			pitStones[pointer] = 0;
-			pitStones[inversePointer] = 0;
-		}
-
-		// return true if the turn ended in storage pit
-		return pointer == 6;
-	}
-
-	public int[] switchBoardView() {
-
-//		// Change the active player
-//		currentPlayer = getOtherPlayer();
-//
-		// Reverse the pit positions
-		int[] newStones = new int[14];
-		System.arraycopy(pitStones, 7, newStones, 0, 7);
-		System.arraycopy(pitStones, 0, newStones, 7, 7);
-                
-                return newStones;
-	}
-           
-	/**
-	 * Draw the stones in the pits
-	 * @param g frame Graphics object
-	 */
-	protected void drawStones(Graphics g) {
-		int cx, cy; // extra centering correction
-
-		for (int pit = 0; pit < pitStones.length; ++pit) {
-			if (pit == 6 || pit == 13) {
-				cx = -3;
-				cy = 0;
-			} else if (pit > 9) {
-				cx = 3;
-				cy = 6;
-			} else {
-				cx = 7;
-				cy = 9;
-			}
-
-			g.drawString( Integer.toString(pitStones[pit]), board.getPitCenterX(pit) + cx, board.getPitCenterY(pit) + cy );
-		}
-	}
-
-	/**
-	 * Paint information on the current player
-	 * @param g Graphics object
-	 */
-	protected void paintPlayerInfo(Graphics g) {
-                       if ( playerOneTurn ) {
-                               g.drawString("Your turn", 20, 20);
-                       } else {
-                               g.drawString("Opponent's turn", 20, 20);
-                       }
-               }
-
-	/**
-	 * Draw the board and stones on the screen
-	 * @param g frame Graphics object
-	 */
-	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
-
-		g.setColor(Color.black);
-		board.drawBoard(g);
-
-		g.setColor(Color.DARK_GRAY);
-		drawStones(g);
-
-		g.setColor(Color.black);
-		paintPlayerInfo(g);
-
-	}
-
-	/**
-	 * Check if a player has won the game
-	 */
-	public void checkForWin() {
-		boolean topRowEmpty = true, bottomRowEmpty = true;
-
-		// Check if the bottom row contains any stones
-		for (int i = 0; i < 6; ++i) {
-			if (pitStones[i] > 0) {
-				bottomRowEmpty = false;
-				break;
-			}
-		}
-
-		// Check if the top row contains any stones
-		for (int i = 7; i < 13; ++i) {
-			if (pitStones[i] > 0) {
-				topRowEmpty = false;
-				break;
-			}
-		}
-
-		// Take the stones from the non-empty row and add them to that player's store
-		if (topRowEmpty || bottomRowEmpty) {
-			if (topRowEmpty && ! bottomRowEmpty) {
-				for (int i = 0; i < 6; ++i) {
-					pitStones[6] += pitStones[i];
-					pitStones[i] = 0;
-				}
-			} else if (! topRowEmpty && bottomRowEmpty) {
-				for (int i = 7; i < 13; ++i) {
-					pitStones[13] += pitStones[i];
-					pitStones[i] = 0;
-				}
-			}
-
-			// Determine which player holds the most stones
-			if (pitStones[6] > pitStones[13] ) {
-				winningPlayer = 1;
-			} else if (pitStones[6] < pitStones[13]) {
-				winningPlayer = 2;
-			} else {
-				// tie
-				winningPlayer = 0;
-			}
-
-			removeMouseListener(this);
-		}
-
-	}
-
-	/**
-	 * Perform a player's turn
-	 * @param pit the pit selected by the player
-	 */
-	public boolean doPlayerTurn(int pit) {
-            // perform the player's action
-            boolean result = moveStones(pit);
-            System.out.println("Result: " + result);
-
-            // make sure that a player hasn't run out of stones
-            checkForWin();
-
-            // change the player if the current turn is ended
-            if (!result && winningPlayer < 0 ) {
-                 System.out.println("Acabou o turno com result =  " + !result);
-                 System.out.println("Winning player: " + winningPlayer);
-                 return true;
+            // Pula a kallah adversária e reseta o contador.
+            if (counter == 13) {
+                counter = 0;
+            } else {
+                currentBoardState[counter]++;
+                stones--;
             }
-            return false;
-         }
+            repaint();
+        }
 
-	/**
-	 * Watch for when the player selects a pit and perform the turn
-	 * @param e the mouse click event
-	 */
-	@Override
-	public void mouseClicked(MouseEvent e) {
-            if (playerOneTurn && winningPlayer < 0) {
-                try {
-                    int x, y;
-                    int mx = e.getX();
-                    int my = e.getY();
+        // Aponta para a casa oposta.
+        int inverseCounter = -counter + 12;
 
-                    // loop through all pits in the bottom row
-                    for (int pit = 0; pit < 6; ++pit) {
-                            x = board.getPitX(pit);
-                            y = board.getPitY(pit);
+        // Checa se houve uma captura.
+        if (counter < 6 && currentBoardState[counter] == 1 && currentBoardState[inverseCounter] > 0) {
 
-                            // check if the click was inside the pit area.
-                            if ( mx > x && mx < x + board.pitWidth && my > y && my < y + board.pitHeight )  {
-                                    boolean shouldSwitch = doPlayerTurn(pit);
-                                    repaint();
-                                    Toolkit.getDefaultToolkit().sync();
+            // Captura as pedras do oponente e manda para a sua kallah.
+            currentBoardState[6] += currentBoardState[inverseCounter] + 1;
 
-                                    if(shouldSwitch){
-                                        playerOneTurn = false;
-                                    }
+            // Zera ambas as casas.
+            currentBoardState[counter] = 0;
+            currentBoardState[inverseCounter] = 0;
+        }
 
-                                    Message newMessage = new Message("GAME", switchBoardView(), shouldSwitch);
-                                    objectOutputStream.writeObject(newMessage);
-                                    objectOutputStream.flush();
-                                    System.out.println("Enviou: "+pitStones[6]);
-                            }
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        // Retorna se a última pedra caiu na sua kallah.
+        // Em caso positivo, você tem mais um turno.
+        return counter == 6;
+    }
+
+    public int[] switchBoardView() {
+
+        // Inverte o tabuleiro
+        int[] inverseBoardState = new int[14];
+        System.arraycopy(currentBoardState, 7, inverseBoardState, 0, 7);
+        System.arraycopy(currentBoardState, 0, inverseBoardState, 7, 7);
+
+        return inverseBoardState;
+    }
+
+    protected void drawStones(Graphics g) {
+        int cx, cy; // correção de centro
+
+        for (int cup = 0; cup < currentBoardState.length; ++cup) {
+            if (cup == 6 || cup == 13) {
+                    cx = -3;
+                    cy = 0;
+            } else if (cup > 9) {
+                    cx = 3;
+                    cy = 6;
+            } else {
+                    cx = 7;
+                    cy = 9;
+            }
+
+            g.setFont(stonesFont);
+            g.drawString(Integer.toString(currentBoardState[cup]), board.getCupCenterX(cup) + cx, 
+                                           board.getCupCenterY(cup) + cy);
+        }
+    }
+
+    protected void paintPlayerInfo(Graphics g) {
+
+        if (!gameEnded) {
+            g.setFont(infoFont);
+            if ( yourTurn ) {
+                g.drawString("Seu turno", 15, 20);
+            } else {
+                g.drawString("Turno do oponente", 15, 20);
+            }
+        } else {
+            System.out.println("caiu no else");
+            g.setFont(infoFont);
+            if (draw) {
+                g.drawString("Empate!", 15, 20);
+            } else {
+                if(youWon){
+                    g.drawString("Você venceu!", 15, 20);
+                } else{
+                    g.drawString("Você perdeu!", 15, 20);
                 }
             }
-	}
+        }
+    }
 
-	@Override public void mouseEntered(MouseEvent e) {}
-	@Override public void mouseExited(MouseEvent e) {}
-	@Override public void mousePressed(MouseEvent e) {}
-	@Override public void mouseReleased(MouseEvent e) {}
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        g.setColor(Color.cyan);
+        board.drawBoard(g);
+
+        g.setColor(Color.DARK_GRAY);
+        drawStones(g);
+
+        g.setColor(Color.black);
+        paintPlayerInfo(g);
+
+    }
+
+    public void checkForWin() {
+        boolean topRowEmpty = true, bottomRowEmpty = true;
+
+        // Checa se a fileira de baixo está vazia.
+        for (int i = 0; i < 6; ++i) {
+            if (currentBoardState[i] > 0) {
+                    bottomRowEmpty = false;
+                    break;
+            }
+        }
+
+        // Checa se a fileira de cima está vazia.
+        for (int i = 7; i < 13; ++i) {
+            if (currentBoardState[i] > 0) {
+                    topRowEmpty = false;
+                    break;
+            }
+        }
+
+        // Coloca as pedras restantes do tabuleiro na kallah do seu jogador.
+        if (topRowEmpty || bottomRowEmpty) {
+            if (topRowEmpty && ! bottomRowEmpty) {
+                for (int i = 0; i < 6; ++i) {
+                    currentBoardState[6] += currentBoardState[i];
+                    currentBoardState[i] = 0;
+                }
+            } else if (! topRowEmpty && bottomRowEmpty) {
+                for (int i = 7; i < 13; ++i) {
+                    currentBoardState[13] += currentBoardState[i];
+                    currentBoardState[i] = 0;
+                }
+            }
+
+            // Checa qual jogador tem mais pedras.
+            if (currentBoardState[6] > currentBoardState[13] ) {
+                youWon = true;
+            } else if (currentBoardState[6] < currentBoardState[13]) {
+                youWon = false;
+            } else {
+                // Empate.
+                draw = true;
+            }
+
+            gameEnded = true;
+            removeMouseListener(this);
+        }
+
+    }
+
+    public boolean doPlayerTurn(int cup) {
+
+        // Move as pedras da casa selecionada.
+        boolean result = moveStones(cup);
+
+        // Checa se alguem jogador não tem mais pedras.
+        checkForWin();
+
+        // Retorna se o seu turno acabou.
+        return !result && !gameEnded;
+     }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (yourTurn && !gameEnded) {
+            try {
+                int x, y;
+                int mx = e.getX();
+                int my = e.getY();
+
+                // Percorre as casas na fileira de baixo.
+                for (int cup = 0; cup < 6; ++cup) {
+                    x = board.getCupX(cup);
+                    y = board.getCupY(cup);
+
+                    // Checa se o clique foi na casa da iteração atual.
+                    if (mx > x && mx < x + board.cupWidth && my > y && my < y + board.cupHeight )  {
+                        boolean shouldSwitch = doPlayerTurn(cup);
+                        repaint();
+                        //Toolkit.getDefaultToolkit().sync();
+
+                        if(shouldSwitch){
+                            yourTurn = false;
+                        }
+
+                        Message newMessage = new Message("GAME", switchBoardView(), shouldSwitch);
+                        objectOutputStream.writeObject(newMessage);
+                        objectOutputStream.flush();
+                    }
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
+    @Override public void mousePressed(MouseEvent e) {}
+    @Override public void mouseReleased(MouseEvent e) {}
 }

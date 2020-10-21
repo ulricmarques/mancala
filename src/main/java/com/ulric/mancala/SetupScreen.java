@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.ulric.mancala;
 
 import java.awt.CardLayout;
@@ -93,10 +88,11 @@ public class SetupScreen implements ActionListener{
         runHost = new JButton("Iniciar servidor");
         runHost.setBounds(200, 100, 120, 50);
         runHost.addActionListener(this);
-
+        
         coverHost.add(runHost);
         coverHost.add(portServer);
         coverHost.add(labelPortServer);
+ 
         
         tabbedPane.addTab("Hospedar", null, coverHost,
                   "Hospedar um jogo");
@@ -150,6 +146,7 @@ public class SetupScreen implements ActionListener{
       
             parentGUI.gameClient = new Client(hostNumber, portNumber);
             boolean connectionAccepted = parentGUI.gameClient.connect();
+            
             
             parentGUI.objectInputStream = parentGUI.gameClient.objectInputStream;
             parentGUI.objectOutputStream = parentGUI.gameClient.objectOutputStream;

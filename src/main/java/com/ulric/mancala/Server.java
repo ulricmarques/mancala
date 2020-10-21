@@ -47,7 +47,7 @@ public class Server {
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectInputStream = new ObjectInputStream(inputStream);
             this.connectionAccepted = true;
-            System.out.println("CLIENT HAS REQUESTED TO JOIN, AND WE HAVE ACCEPTED");
+            System.out.println("Client has requested to join and the server accepted");
         } catch (IOException e) {
         }
     }
