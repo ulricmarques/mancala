@@ -49,14 +49,13 @@ public class GUI extends Thread {
         mainScreen = new MainScreen(this);
   
         window.setSize(600, 450);
-
         switchPanels.add(mainScreen.getMainPanel(), "main");
         window.add(switchPanels);
 
-        window.setResizable(true); // size remain the same, not changeable
-        window.setSize(600, 450); // size for the client
+        window.setResizable(false); 
+        window.setSize(600, 450);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setVisible(true); // display frame
+        window.setVisible(true); 
 
     }
 
@@ -76,7 +75,7 @@ public class GUI extends Thread {
                     if(message.type.equals("CHAT")){
                         if(!"".equals(message.text)){
                             temp = temp + message.text + "\n";
-                            mainScreen.server.setText(temp);
+                            mainScreen.display.setText(temp);
                         }
                     }
                     if(message.type.equals("GAME")){

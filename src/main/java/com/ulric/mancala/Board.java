@@ -37,7 +37,7 @@ class Board {
         int round = 30;
         int resize = 20;
 
-        g.setColor(playerOneColor);
+        g.setColor(playerTwoColor);
         g.drawRoundRect(outerPadding, outerPadding + resize,
                         kallahWidth, kallahHeight - resize*2,
                         round, round);
@@ -45,7 +45,7 @@ class Board {
         
         int x = outerPadding + kallahWidth + 6 * ( innerPadding + cupWidth );
 
-        g.setColor(playerTwoColor);
+        g.setColor(playerOneColor);
         g.drawRoundRect(x, outerPadding + resize,
                         kallahWidth, kallahHeight - resize*2,
                         round, round);
@@ -56,10 +56,10 @@ class Board {
 
         int rowX = kallahWidth + innerPadding * 2;
 
-        g.setColor(playerOneColor);
+        g.setColor(playerTwoColor);
         drawCupsRow(g, rowX, outerPadding);
 
-        g.setColor(playerTwoColor);
+        g.setColor(playerOneColor);
         drawCupsRow(g, rowX, outerPadding + cupHeight + innerPadding );
     }
 

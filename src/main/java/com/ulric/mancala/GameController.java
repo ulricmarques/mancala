@@ -1,6 +1,7 @@
 package com.ulric.mancala;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -36,15 +37,19 @@ class GameController extends JPanel implements MouseListener {
     private boolean youWon = false;
     private boolean draw = false;
     private boolean gameEnded = false;
-
+    
+    private final Color yourColor = Color.blue;
+    private Color opponentColor = Color.red;
+    private Color neutralColor = Color.black;
+    
     private final Font stonesFont = new Font("Arial", Font.BOLD, 15);
-    private final Font infoFont = new Font("Arial", Font.BOLD, 12);
+    private final Font infoFont = new Font("Arial", Font.BOLD, 20);
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
 
 
     public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, boolean goesFirst) {
-        board = new Board(Color.blue, Color.red);
+        board = new Board(yourColor, opponentColor);
 
         this.objectOutputStream = objectOutputStream;
         this.objectInputStream = objectInputStream;
@@ -56,6 +61,12 @@ class GameController extends JPanel implements MouseListener {
         setBorder(BorderFactory.createLineBorder(Color.black));
         addMouseListener(this);      
     }
+    
+    @Override
+    public Dimension getPreferredSize() {
+            return board.getSize();
+    }
+
 
     public void updateGameState(int[] boardState, boolean switchTurn){
         currentBoardState = boardState;
@@ -151,20 +162,22 @@ class GameController extends JPanel implements MouseListener {
         if (!gameEnded) {
             g.setFont(infoFont);
             if ( yourTurn ) {
-                g.drawString("Seu turno", 15, 20);
+                g.setColor(yourColor);
+                g.drawString("Seu turno", board.getCupCenterX(2), 250);
             } else {
-                g.drawString("Turno do oponente", 15, 20);
+                g.setColor(opponentColor);
+                g.drawString("Turno do oponente", board.getCupCenterX(2), 250);
             }
         } else {
-            System.out.println("caiu no else");
             g.setFont(infoFont);
+            g.setColor(neutralColor);
             if (draw) {
-                g.drawString("Empate!", 15, 20);
+                g.drawString("Empate!", board.getCupCenterX(2), 250);
             } else {
                 if(youWon){
-                    g.drawString("Você venceu!", 15, 20);
+                    g.drawString("Você venceu!", board.getCupCenterX(2), 250);
                 } else{
-                    g.drawString("Você perdeu!", 15, 20);
+                    g.drawString("Você perdeu!", board.getCupCenterX(2), 250);
                 }
             }
         }
@@ -173,14 +186,15 @@ class GameController extends JPanel implements MouseListener {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        
+        setBackground(new Color(210, 166, 121));
 
-        g.setColor(Color.cyan);
         board.drawBoard(g);
 
-        g.setColor(Color.DARK_GRAY);
+        g.setColor(neutralColor);
         drawStones(g);
 
-        g.setColor(Color.black);
+        g.setColor(neutralColor);
         paintPlayerInfo(g);
 
     }

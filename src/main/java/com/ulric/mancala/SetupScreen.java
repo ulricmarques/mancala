@@ -1,7 +1,6 @@
 package com.ulric.mancala;
 
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,9 +8,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 /**
@@ -22,81 +19,75 @@ public class SetupScreen implements ActionListener{
    
     protected GUI parentGUI;
     
-    private JPanel coverHost, coverJoin;
+    private final JPanel panelHost;
+    private final JPanel panelJoin;
     
-    private JTextField host;
-    private JTextField portServer;
-    private JTextField portClient;
+    private final JTextField inputHost;
+    private final JTextField inputServerPort;
+    private final JTextField inputClientPort;
 
-    private JButton runHost, runJoin;
+    private final JButton runHost;
+    private final JButton runJoin;
     
-    private Color clientColour;
-    
-    private JLabel labelIP;
-    private JLabel labelPortServer;
-    private JLabel labelPortClient;
-    private JLabel labelMessageWrite;
-    private JLabel labelMessageRead;
+    private final JLabel labelIP;
+    private final JLabel labelServerPort;
+    private final JLabel labelClientPort;
 
-    private JTextArea server;
-    private JTextField input;
-    private JScrollPane scrollBar;
-    
-    private JTabbedPane tabbedPane;
+    private final JTabbedPane tabbedPane;
     
     public SetupScreen(GUI parentGUI)  {
         this.parentGUI = parentGUI;
         tabbedPane = new JTabbedPane();
      
-        coverJoin = new JPanel();
-        coverJoin.setLayout(null); 
-        coverJoin.setSize(300, 400);
+        panelJoin = new JPanel();
+        panelJoin.setLayout(null); 
+        panelJoin.setSize(300, 400);
 
-        host = new JTextField();
-        host.setBounds(60, 120, 400, 40);
-        host.setText("localhost");
-        host.addActionListener(this);
+        inputHost = new JTextField();
+        inputHost.setBounds(60, 120, 400, 40);
+        inputHost.setText("localhost");
+        inputHost.addActionListener(this);
         labelIP = new JLabel("Digite o IP");
         labelIP.setBounds(60, 90, 300, 40);
-        coverJoin.add(labelIP);
-        coverJoin.add(host);
+        panelJoin.add(labelIP);
+        panelJoin.add(inputHost);
 
-        portClient = new JTextField();
-        portClient.setBounds(60, 180, 400, 40);
-        portClient.addActionListener(this);
-        portClient.setText("5000");
-        labelPortClient = new JLabel("Digite a porta");
-        labelPortClient.setBounds(60, 150, 300, 40);
-        coverJoin.add(labelPortClient);
-        coverJoin.add(portClient);
+        inputClientPort = new JTextField();
+        inputClientPort.setBounds(60, 180, 400, 40);
+        inputClientPort.addActionListener(this);
+        inputClientPort.setText("5000");
+        labelClientPort = new JLabel("Digite a porta");
+        labelClientPort.setBounds(60, 150, 300, 40);
+        panelJoin.add(labelClientPort);
+        panelJoin.add(inputClientPort);
 
         runJoin = new JButton("Iniciar cliente");
         runJoin.setBounds(200, 250, 120, 50);
         runJoin.addActionListener(this);
-        coverJoin.add(runJoin);
+        panelJoin.add(runJoin);
         
-        coverHost = new JPanel();
-        coverHost.setLayout(null); 
+        panelHost = new JPanel();
+        panelHost.setLayout(null); 
 
-        portServer = new JTextField();
-        portServer.setBounds(60, 60, 400, 40);
-        portServer.addActionListener(this);
-        portServer.setText("5000");
-        labelPortServer = new JLabel("Digite a porta:");
-        labelPortServer.setBounds(60, 30, 400, 40);
+        inputServerPort = new JTextField();
+        inputServerPort.setBounds(60, 60, 400, 40);
+        inputServerPort.addActionListener(this);
+        inputServerPort.setText("5000");
+        labelServerPort = new JLabel("Digite a porta:");
+        labelServerPort.setBounds(60, 30, 400, 40);
         
         runHost = new JButton("Iniciar servidor");
         runHost.setBounds(200, 100, 120, 50);
         runHost.addActionListener(this);
         
-        coverHost.add(runHost);
-        coverHost.add(portServer);
-        coverHost.add(labelPortServer);
+        panelHost.add(runHost);
+        panelHost.add(inputServerPort);
+        panelHost.add(labelServerPort);
  
         
-        tabbedPane.addTab("Hospedar", null, coverHost,
+        tabbedPane.addTab("Hospedar", null, panelHost,
                   "Hospedar um jogo");
-        tabbedPane.addTab("Entrar", null, coverJoin,
+        tabbedPane.addTab("Entrar", null, panelJoin,
                   "Entrar em um jogo");
     }
     
@@ -109,12 +100,12 @@ public class SetupScreen implements ActionListener{
 
         CardLayout changePages = (CardLayout) (parentGUI.switchPanels.getLayout());
         
-        if (e.getSource() == runHost && portServer.getText().length() < 1) {
+        if (e.getSource() == runHost && inputServerPort.getText().length() < 1) {
             JOptionPane.showMessageDialog(null, "Por favor, digite um número para a porta");
         }
 
-        if (e.getSource() == runHost && portServer.getText().length() > 0) {
-            int portNumber = Integer.parseInt(portServer.getText());
+        if (e.getSource() == runHost && inputServerPort.getText().length() > 0) {
+            int portNumber = Integer.parseInt(inputServerPort.getText());
             parentGUI.gameServer = new Server(portNumber);
             parentGUI.gameServer.initializeServer();
             if (!parentGUI.gameServer.connectionAccepted) {
@@ -127,22 +118,22 @@ public class SetupScreen implements ActionListener{
             parentGUI.start();
             
             changePages.show(parentGUI.switchPanels, "main");
-            parentGUI.window.setSize(800, 600);
+            parentGUI.window.setSize(780, 600);
             parentGUI.window.setLayout(new GridLayout(2,0));
             parentGUI.game = new GameController(parentGUI.objectInputStream, parentGUI.objectOutputStream, true);
             parentGUI.window.add(parentGUI.game);
             
         }
 
-        if (e.getSource() == runJoin  && portClient.getText().length() < 1) {
+        if (e.getSource() == runJoin  && inputClientPort.getText().length() < 1) {
 
             JOptionPane.showMessageDialog(null, "Por favor, digite o endereço IP e a porta.");
 
         }
-        if (e.getSource() == runJoin  && portClient.getText().length() > 0) {
+        if (e.getSource() == runJoin  && inputClientPort.getText().length() > 0) {
             
-            int portNumber = Integer.parseInt(portClient.getText());
-            String hostNumber = host.getText();
+            int portNumber = Integer.parseInt(inputClientPort.getText());
+            String hostNumber = inputHost.getText();
       
             parentGUI.gameClient = new Client(hostNumber, portNumber);
             boolean connectionAccepted = parentGUI.gameClient.connect();
@@ -153,7 +144,7 @@ public class SetupScreen implements ActionListener{
             
             parentGUI.start();
             changePages.show(parentGUI.switchPanels, "main");
-            parentGUI.window.setSize(800, 600);
+            parentGUI.window.setSize(780, 600);
             parentGUI.window.setLayout(new GridLayout(2,0));
             parentGUI.game = new GameController(parentGUI.objectInputStream, parentGUI.objectOutputStream, false);
             parentGUI.window.add(parentGUI.game);

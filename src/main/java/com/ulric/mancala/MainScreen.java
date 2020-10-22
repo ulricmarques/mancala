@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -21,24 +20,15 @@ public class MainScreen implements ActionListener {
     
     protected GUI parentGUI;
     
-    private JPanel main;
+    private final JPanel main;
     private GameController game;
-    private JTextField host;
     
-    private JTextField portServer;
-    private JTextField portClient;
+    private final JLabel labelMessageWrite;
+    private final JLabel labelMessageRead;
 
-    private JButton runHost, runJoin;
-    
-    private JLabel labelIP;
-    private JLabel labelPortServer;
-    private JLabel labelPortClient;
-    private JLabel labelMessageWrite;
-    private JLabel labelMessageRead;
-
-    protected JTextArea server;
+    protected JTextArea display;
     protected JTextField input;
-    private JScrollPane scrollBar;
+    private final JScrollPane scrollBar;
     
     public MainScreen(GUI parentGUI) {
         
@@ -55,10 +45,10 @@ public class MainScreen implements ActionListener {
         main.add(labelMessageRead);
 
         Border thinBorder = LineBorder.createBlackLineBorder();
-        server = new JTextArea();
-        server.setEditable(false);
-        server.setBorder(thinBorder);
-        scrollBar = new JScrollPane(server);
+        display = new JTextArea();
+        display.setEditable(false);
+        display.setBorder(thinBorder);
+        scrollBar = new JScrollPane(display);
         scrollBar.setBounds(20, 30, 450, 150);
 
         main.add(scrollBar);
