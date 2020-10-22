@@ -40,8 +40,8 @@ class GameController extends JPanel implements MouseListener {
     private boolean surrenderVictory = false;
     
     private final Color yourColor = Color.blue;
-    private Color opponentColor = Color.red;
-    private Color neutralColor = Color.black;
+    private final Color opponentColor = Color.red;
+    private final Color neutralColor = Color.black;
     
     private final Font stonesFont = new Font("Arial", Font.BOLD, 15);
     private final Font infoFont = new Font("Arial", Font.BOLD, 20);
@@ -68,7 +68,6 @@ class GameController extends JPanel implements MouseListener {
         return board.getSize();
     }
 
-
     public void updateGameState(int[] boardState, boolean switchTurn){
         currentBoardState = boardState;
         checkForWin();
@@ -78,33 +77,80 @@ class GameController extends JPanel implements MouseListener {
         }
     }
 
-    public int[] restartGame(){
+    public void resetBoard(){
         int[] initialBoard = { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
-        return initialBoard;
+        currentBoardState = initialBoard;
     }
     
-    public void surrender(){   
+    public void finishGame(boolean restart){
+        gameEnded = true;
+        
+        String endGameMessage;
+        
+        if (draw) {
+            endGameMessage = "A partida terminou empatada!";
+        } else {
+            if(youWon){
+                if(surrenderVictory){
+                    endGameMessage = "Você perdeu! (Por desistência)";
+                }else{
+                    endGameMessage = "Você perdeu!";
+                }
+            } else{
+                if(surrenderVictory){
+                    endGameMessage = "Você venceu! (Por desistência)";
+                }else{
+                    endGameMessage = "Você venceu!";
+                }
+            }
+        }
+        
         try {
-            Message newMessage = new Message("SURRENDER");
+            Message newMessage = new Message("CHAT", endGameMessage);
             objectOutputStream.writeObject(newMessage);
             objectOutputStream.flush();
-            gameEnded = true;
+        } catch (IOException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if(restart){
+            resetBoard();
+            yourTurn = this.goesFirst == true;
+            gameEnded = false;
+        }else{
+            removeMouseListener(this);
+        }
+    }
+
+    public void surrender(boolean restart){   
+        try {
+            Message newMessage;
+            if(restart){
+                newMessage = new Message("RESTART");
+            }else{
+                newMessage = new Message("SURRENDER");
+            }
+            objectOutputStream.writeObject(newMessage);
+            objectOutputStream.flush();
             youWon = false;
             surrenderVictory = true;
+            repaint();
+            finishGame(restart);
             repaint();
         } catch (IOException ex) {
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void victoryBySurrender(){
-        gameEnded = true;
+    public void victoryBySurrender(boolean restart){
         youWon = true;
         surrenderVictory = true;
+        System.out.println("recebeu restart: " + restart);
+        repaint();
+        finishGame(restart);
         repaint();
     }
     
-
     protected boolean moveStones(final int cup) {
         int counter = cup;
 
@@ -274,12 +320,10 @@ class GameController extends JPanel implements MouseListener {
                 draw = true;
             }
 
-            gameEnded = true;
-            removeMouseListener(this);
+            finishGame(false);
         }
-
     }
-
+    
     public boolean doPlayerTurn(int cup) {
 
         // Move as pedras da casa selecionada.
@@ -308,8 +352,7 @@ class GameController extends JPanel implements MouseListener {
                     // Checa se o clique foi na casa da iteração atual.
                     if (mx > x && mx < x + board.cupWidth && my > y && my < y + board.cupHeight )  {
                         boolean shouldSwitch = doPlayerTurn(cup);
-                        repaint();
-                        //Toolkit.getDefaultToolkit().sync();
+                        repaint();                      
 
                         if(shouldSwitch){
                             yourTurn = false;

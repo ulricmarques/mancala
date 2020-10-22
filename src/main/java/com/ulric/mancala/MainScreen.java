@@ -73,16 +73,11 @@ public class MainScreen implements ActionListener {
         runSurrender.setBounds(550, 30, 130, 30);
         runSurrender.addActionListener(this);
         
-        runRestartGame = new JButton("Refazer jogada");
+        runRestartGame = new JButton("Reiniciar partida");
         runRestartGame.setBounds(550, 90, 130, 30);
         runRestartGame.addActionListener(this);
-        
-        runUndoTurn = new JButton("Reiniciar partida");
-        runUndoTurn.setBounds(550, 150, 130, 30);
-        runUndoTurn.addActionListener(this);
-        
+         
         main.add(runSurrender);
-        main.add(runUndoTurn);
         main.add(runRestartGame);
     }
     
@@ -111,13 +106,26 @@ public class MainScreen implements ActionListener {
         
         if (e.getSource() == runSurrender) {
             int response = JOptionPane.showConfirmDialog(
-                    null, 
+                    parentGUI.game, 
                     "Deseja mesmo desistir da partida?", 
                     "Confirmação de desistência", 
                     JOptionPane.YES_NO_OPTION);    
             
             if(response == 0){
-                parentGUI.game.surrender();
+                parentGUI.game.surrender(false);
+            }
+            
+        }
+        
+        if (e.getSource() == runRestartGame) {
+            int response = JOptionPane.showConfirmDialog(
+                    parentGUI.game, 
+                    "Deseja mesmo reiniciar a partida? Isso será contado como desistência.", 
+                    "Confirmação de desistência", 
+                    JOptionPane.YES_NO_OPTION);    
+            
+            if(response == 0){
+                parentGUI.game.surrender(true);
             }
             
         }

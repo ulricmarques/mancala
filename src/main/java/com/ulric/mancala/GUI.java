@@ -2,6 +2,7 @@ package com.ulric.mancala;
 
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -81,11 +82,14 @@ public class GUI extends Thread {
                         game.updateGameState(message.boardState, message.switchTurn);
                     }
                     if(message.type.equals("SURRENDER")){
-                        game.victoryBySurrender();
+                        game.victoryBySurrender(false);
+                    }
+                    if(message.type.equals("RESTART")){
+                        game.victoryBySurrender(true);
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException | ClassNotFoundException e) {
         }
     }
    
