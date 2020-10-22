@@ -48,12 +48,11 @@ public class GUI extends Thread {
 
         mainScreen = new MainScreen(this);
   
-        window.setSize(600, 450);
         switchPanels.add(mainScreen.getMainPanel(), "main");
         window.add(switchPanels);
 
         window.setResizable(false); 
-        window.setSize(600, 450);
+        window.setSize(550, 350);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true); 
 
@@ -80,6 +79,9 @@ public class GUI extends Thread {
                     }
                     if(message.type.equals("GAME")){
                         game.updateGameState(message.boardState, message.switchTurn);
+                    }
+                    if(message.type.equals("SURRENDER")){
+                        game.victoryBySurrender();
                     }
                 }
             }

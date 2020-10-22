@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -25,6 +27,10 @@ public class MainScreen implements ActionListener {
     
     private final JLabel labelMessageWrite;
     private final JLabel labelMessageRead;
+    
+    private JButton runSurrender;
+    private JButton runUndoTurn;
+    private JButton runRestartGame;
 
     protected JTextArea display;
     protected JTextField input;
@@ -62,6 +68,22 @@ public class MainScreen implements ActionListener {
         input.setBounds(20, 220, 450, 30);
         input.addActionListener(this);
         main.add(input);
+        
+        runSurrender = new JButton("Desistir");
+        runSurrender.setBounds(550, 30, 130, 30);
+        runSurrender.addActionListener(this);
+        
+        runRestartGame = new JButton("Refazer jogada");
+        runRestartGame.setBounds(550, 90, 130, 30);
+        runRestartGame.addActionListener(this);
+        
+        runUndoTurn = new JButton("Reiniciar partida");
+        runUndoTurn.setBounds(550, 150, 130, 30);
+        runUndoTurn.addActionListener(this);
+        
+        main.add(runSurrender);
+        main.add(runUndoTurn);
+        main.add(runRestartGame);
     }
     
     public JPanel getMainPanel(){
@@ -85,6 +107,19 @@ public class MainScreen implements ActionListener {
   
         if (!input.getText().equals("")) {
             writeMessage();
+        }
+        
+        if (e.getSource() == runSurrender) {
+            int response = JOptionPane.showConfirmDialog(
+                    null, 
+                    "Deseja mesmo desistir da partida?", 
+                    "Confirmação de desistência", 
+                    JOptionPane.YES_NO_OPTION);    
+            
+            if(response == 0){
+                parentGUI.game.surrender();
+            }
+            
         }
     }
 }

@@ -37,6 +37,7 @@ class GameController extends JPanel implements MouseListener {
     private boolean youWon = false;
     private boolean draw = false;
     private boolean gameEnded = false;
+    private boolean surrenderVictory = false;
     
     private final Color yourColor = Color.blue;
     private Color opponentColor = Color.red;
@@ -64,7 +65,7 @@ class GameController extends JPanel implements MouseListener {
     
     @Override
     public Dimension getPreferredSize() {
-            return board.getSize();
+        return board.getSize();
     }
 
 
@@ -81,6 +82,28 @@ class GameController extends JPanel implements MouseListener {
         int[] initialBoard = { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
         return initialBoard;
     }
+    
+    public void surrender(){   
+        try {
+            Message newMessage = new Message("SURRENDER");
+            objectOutputStream.writeObject(newMessage);
+            objectOutputStream.flush();
+            gameEnded = true;
+            youWon = false;
+            surrenderVictory = true;
+            repaint();
+        } catch (IOException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void victoryBySurrender(){
+        gameEnded = true;
+        youWon = true;
+        surrenderVictory = true;
+        repaint();
+    }
+    
 
     protected boolean moveStones(final int cup) {
         int counter = cup;
@@ -175,9 +198,17 @@ class GameController extends JPanel implements MouseListener {
                 g.drawString("Empate!", board.getCupCenterX(2), 250);
             } else {
                 if(youWon){
-                    g.drawString("Você venceu!", board.getCupCenterX(2), 250);
+                    if(surrenderVictory){
+                        g.drawString("Você venceu! (Por desistência)", board.getCupCenterX(1), 250);
+                    }else{
+                        g.drawString("Você venceu!", board.getCupCenterX(2), 250);
+                    }
                 } else{
-                    g.drawString("Você perdeu!", board.getCupCenterX(2), 250);
+                    if(surrenderVictory){
+                        g.drawString("Você perdeu! (Por desistência)", board.getCupCenterX(1), 250);
+                    }else{
+                        g.drawString("Você perdeu!", board.getCupCenterX(2), 250);
+                    }
                 }
             }
         }
@@ -187,7 +218,8 @@ class GameController extends JPanel implements MouseListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         
-        setBackground(new Color(210, 166, 121));
+        //setBackground(new Color(210, 166, 121));
+        setBackground(Color.white);
 
         board.drawBoard(g);
 

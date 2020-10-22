@@ -38,36 +38,11 @@ public class SetupScreen implements ActionListener{
     public SetupScreen(GUI parentGUI)  {
         this.parentGUI = parentGUI;
         tabbedPane = new JTabbedPane();
-     
-        panelJoin = new JPanel();
-        panelJoin.setLayout(null); 
-        panelJoin.setSize(300, 400);
-
-        inputHost = new JTextField();
-        inputHost.setBounds(60, 120, 400, 40);
-        inputHost.setText("localhost");
-        inputHost.addActionListener(this);
-        labelIP = new JLabel("Digite o IP");
-        labelIP.setBounds(60, 90, 300, 40);
-        panelJoin.add(labelIP);
-        panelJoin.add(inputHost);
-
-        inputClientPort = new JTextField();
-        inputClientPort.setBounds(60, 180, 400, 40);
-        inputClientPort.addActionListener(this);
-        inputClientPort.setText("5000");
-        labelClientPort = new JLabel("Digite a porta");
-        labelClientPort.setBounds(60, 150, 300, 40);
-        panelJoin.add(labelClientPort);
-        panelJoin.add(inputClientPort);
-
-        runJoin = new JButton("Iniciar cliente");
-        runJoin.setBounds(200, 250, 120, 50);
-        runJoin.addActionListener(this);
-        panelJoin.add(runJoin);
         
+        // Hospedar
         panelHost = new JPanel();
         panelHost.setLayout(null); 
+        panelHost.setSize(300, 400);
 
         inputServerPort = new JTextField();
         inputServerPort.setBounds(60, 60, 400, 40);
@@ -83,7 +58,35 @@ public class SetupScreen implements ActionListener{
         panelHost.add(runHost);
         panelHost.add(inputServerPort);
         panelHost.add(labelServerPort);
- 
+     
+        // Entrar
+        panelJoin = new JPanel();
+        panelJoin.setLayout(null); 
+        panelJoin.setSize(300, 400);
+
+        inputHost = new JTextField();
+        inputHost.setBounds(60, 60, 400, 40);
+        inputHost.setText("localhost");
+        inputHost.addActionListener(this);
+        labelIP = new JLabel("Digite o IP");
+        labelIP.setBounds(60, 30, 300, 40);
+        panelJoin.add(labelIP);
+        panelJoin.add(inputHost);
+
+        inputClientPort = new JTextField();
+        inputClientPort.setBounds(60, 130, 400, 40);
+        inputClientPort.addActionListener(this);
+        inputClientPort.setText("5000");
+        labelClientPort = new JLabel("Digite a porta");
+        labelClientPort.setBounds(60, 100, 300, 40);
+        panelJoin.add(labelClientPort);
+        panelJoin.add(inputClientPort);
+
+        runJoin = new JButton("Iniciar cliente");
+        runJoin.setBounds(200, 170, 120, 50);
+        runJoin.addActionListener(this);
+        panelJoin.add(runJoin);
+        
         
         tabbedPane.addTab("Hospedar", null, panelHost,
                   "Hospedar um jogo");
