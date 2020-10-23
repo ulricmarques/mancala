@@ -59,7 +59,7 @@ public class MainScreen implements ActionListener {
 
         main.add(scrollBar);
 
-        labelMessageWrite = new JLabel("Digite sua mensagem: ");
+        labelMessageWrite = new JLabel("Digite sua mensagem: (ENTER para enviar)");
         labelMessageWrite.setForeground(Color.white);
         labelMessageWrite.setBounds(30, 180, 300, 40);
         main.add(labelMessageWrite);
@@ -88,9 +88,14 @@ public class MainScreen implements ActionListener {
     public void writeMessage() {
 
         try {
+            String temp = "";
             Message newMessage = new Message("CHAT", input.getText());
             parentGUI.objectOutputStream.writeObject(newMessage);
-            parentGUI.objectOutputStream.flush();          
+            parentGUI.objectOutputStream.flush();
+            if(!"".equals(input.getText())){
+                temp = display.getText() + "Você: " + input.getText() + "\n";
+                display.setText(temp);
+            }
         } catch (IOException i) {
             System.out.println("Error " + i);
         }
@@ -112,7 +117,7 @@ public class MainScreen implements ActionListener {
                     JOptionPane.YES_NO_OPTION);    
             
             if(response == 0){
-                parentGUI.game.surrender(false);
+                parentGUI.game.surrender();
             }
             
         }
@@ -120,12 +125,12 @@ public class MainScreen implements ActionListener {
         if (e.getSource() == runRestartGame) {
             int response = JOptionPane.showConfirmDialog(
                     parentGUI.game, 
-                    "Deseja mesmo reiniciar a partida? Isso será contado como desistência.", 
-                    "Confirmação de desistência", 
+                    "Deseja mesmo reiniciar a partida? Isso contará como desistência.", 
+                    "Confirmação de reinício", 
                     JOptionPane.YES_NO_OPTION);    
             
             if(response == 0){
-                parentGUI.game.surrender(true);
+                parentGUI.game.restartGame();
             }
             
         }

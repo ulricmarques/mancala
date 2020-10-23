@@ -43,18 +43,22 @@ class GameController extends JPanel implements MouseListener {
     private final Color opponentColor = Color.red;
     private final Color neutralColor = Color.black;
     
+    protected String playerName;
+    
     private final Font stonesFont = new Font("Arial", Font.BOLD, 15);
     private final Font infoFont = new Font("Arial", Font.BOLD, 20);
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
 
-
-    public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, boolean goesFirst) {
+    public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream,
+            boolean goesFirst, String playerName) {
         board = new Board(yourColor, opponentColor);
 
         this.objectOutputStream = objectOutputStream;
         this.objectInputStream = objectInputStream;
 
+        this.playerName = playerName;
+        
         this.goesFirst = goesFirst;
 
         yourTurn = this.goesFirst == true;
@@ -82,72 +86,51 @@ class GameController extends JPanel implements MouseListener {
         currentBoardState = initialBoard;
     }
     
-    public void finishGame(boolean restart){
-        gameEnded = true;
-        
-        String endGameMessage;
-        
-        if (draw) {
-            endGameMessage = "A partida terminou empatada!";
-        } else {
-            if(youWon){
-                if(surrenderVictory){
-                    endGameMessage = "Você perdeu! (Por desistência)";
-                }else{
-                    endGameMessage = "Você perdeu!";
-                }
-            } else{
-                if(surrenderVictory){
-                    endGameMessage = "Você venceu! (Por desistência)";
-                }else{
-                    endGameMessage = "Você venceu!";
-                }
-            }
-        }
-        
+    public void restartGame(){
         try {
-            Message newMessage = new Message("CHAT", endGameMessage);
+            Message newMessage = new Message("RESTART");
             objectOutputStream.writeObject(newMessage);
             objectOutputStream.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        if(restart){
             resetBoard();
             yourTurn = this.goesFirst == true;
             gameEnded = false;
-        }else{
-            removeMouseListener(this);
-        }
-    }
-
-    public void surrender(boolean restart){   
-        try {
-            Message newMessage;
-            if(restart){
-                newMessage = new Message("RESTART");
-            }else{
-                newMessage = new Message("SURRENDER");
-            }
-            objectOutputStream.writeObject(newMessage);
-            objectOutputStream.flush();
-            youWon = false;
-            surrenderVictory = true;
-            repaint();
-            finishGame(restart);
             repaint();
         } catch (IOException ex) {
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void victoryBySurrender(boolean restart){
+    public void handleRestart(){
+        resetBoard();
+        yourTurn = this.goesFirst == true;
+        gameEnded = false;
+        repaint();
+    }
+    
+    public void finishGame(){
+        gameEnded = true;
+        removeMouseListener(this);
+    }
+
+    public void surrender(){   
+        try {
+            Message newMessage =  new Message("SURRENDER");
+            objectOutputStream.writeObject(newMessage);
+            objectOutputStream.flush();
+            youWon = false;
+            surrenderVictory = true;
+            finishGame();
+            repaint();
+        } catch (IOException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void handleSurrender(){
         youWon = true;
         surrenderVictory = true;
-        System.out.println("recebeu restart: " + restart);
         repaint();
-        finishGame(restart);
+        finishGame();
         repaint();
     }
     
@@ -320,7 +303,7 @@ class GameController extends JPanel implements MouseListener {
                 draw = true;
             }
 
-            finishGame(false);
+            finishGame();
         }
     }
     

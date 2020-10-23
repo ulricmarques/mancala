@@ -53,7 +53,7 @@ public class GUI extends Thread {
         window.add(switchPanels);
 
         window.setResizable(false); 
-        window.setSize(550, 350);
+        window.setSize(550, 400);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true); 
 
@@ -74,7 +74,7 @@ public class GUI extends Thread {
                 if(!"".equals(message.type)){
                     if(message.type.equals("CHAT")){
                         if(!"".equals(message.text)){
-                            temp = temp + message.text + "\n";
+                            temp = mainScreen.display.getText() + game.playerName + ": "  + message.text + "\n";
                             mainScreen.display.setText(temp);
                         }
                     }
@@ -82,10 +82,10 @@ public class GUI extends Thread {
                         game.updateGameState(message.boardState, message.switchTurn);
                     }
                     if(message.type.equals("SURRENDER")){
-                        game.victoryBySurrender(false);
+                        game.handleSurrender();
                     }
                     if(message.type.equals("RESTART")){
-                        game.victoryBySurrender(true);
+                        game.handleRestart();
                     }
                 }
             }
