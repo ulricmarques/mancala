@@ -148,7 +148,7 @@ public class SetupScreen implements ActionListener{
             parentGUI.start();
             
             changePages.show(parentGUI.switchPanels, "main");
-            parentGUI.window.setSize(780, 600);
+            parentGUI.window.setSize(775, 595);
             parentGUI.window.setLayout(new GridLayout(2,0));
             parentGUI.game = new GameController(parentGUI.objectInputStream, parentGUI.objectOutputStream, true, playerName);
             parentGUI.window.add(parentGUI.game);
@@ -175,7 +175,7 @@ public class SetupScreen implements ActionListener{
             
             parentGUI.start();
             changePages.show(parentGUI.switchPanels, "main");
-            parentGUI.window.setSize(780, 600);
+            parentGUI.window.setSize(775, 595);
             parentGUI.window.setLayout(new GridLayout(2,0));
             parentGUI.game = new GameController(parentGUI.objectInputStream, parentGUI.objectOutputStream, false, playerName);
             parentGUI.window.add(parentGUI.game);

@@ -41,11 +41,11 @@ class GameController extends JPanel implements MouseListener {
     
     private final Color yourColor = Color.blue;
     private final Color opponentColor = Color.red;
-    private final Color neutralColor = Color.black;
+    private final Color neutralColor = new Color(0,0,0, (float) 0.5);
     
     protected String playerName;
     
-    private final Font stonesFont = new Font("Arial", Font.BOLD, 15);
+    private final Font stonesFont = new Font("Arial", Font.BOLD, 20);
     private final Font infoFont = new Font("Arial", Font.BOLD, 20);
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
@@ -189,18 +189,15 @@ class GameController extends JPanel implements MouseListener {
     }
 
     protected void drawStones(Graphics g) {
-        int cx, cy; // correção de centro
+        int cx, cy; // ajuste de centro
 
-        for (int cup = 0; cup < currentBoardState.length; ++cup) {
+        for (int cup = 0; cup < currentBoardState.length; cup++) {
             if (cup == 6 || cup == 13) {
-                    cx = -3;
-                    cy = 0;
-            } else if (cup > 9) {
-                    cx = 3;
-                    cy = 6;
+                cx = 0;
+                cy = -4;
             } else {
-                    cx = 7;
-                    cy = 9;
+                cx = -2;
+                cy = 5;
             }
 
             g.setFont(stonesFont);
@@ -247,10 +244,7 @@ class GameController extends JPanel implements MouseListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         
-        //setBackground(new Color(210, 166, 121));
-        setBackground(Color.white);
-
-        board.drawBoard(g);
+        board.drawBoard(g, yourTurn);
 
         g.setColor(neutralColor);
         drawStones(g);
@@ -335,7 +329,7 @@ class GameController extends JPanel implements MouseListener {
                     // Checa se o clique foi na casa da iteração atual.
                     if (mx > x && mx < x + board.cupWidth && my > y && my < y + board.cupHeight )  {
                         boolean shouldSwitch = doPlayerTurn(cup);
-                        repaint();                      
+                        repaint();      
 
                         if(shouldSwitch){
                             yourTurn = false;
