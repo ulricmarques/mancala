@@ -9,8 +9,6 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,11 +26,8 @@ public class GameController extends JPanel implements MouseListener {
 
     final Board board;
 
-    private DataInputStream inputStream;
-    private DataOutputStream outputStream;
-
-    private ObjectInputStream objectInputStream;
-    private ObjectOutputStream objectOutputStream;
+    private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
 
     private final boolean goesFirst;
     private boolean yourTurn;
@@ -51,13 +46,13 @@ public class GameController extends JPanel implements MouseListener {
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
 
-    public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream,
+    public GameController(ObjectInputStream inputStream, ObjectOutputStream outputStream,
             boolean goesFirst, String playerName) {
         
         board = new Board();
 
-        this.objectOutputStream = objectOutputStream;
-        this.objectInputStream = objectInputStream;
+        this.outputStream = outputStream;
+        this.inputStream = inputStream;
 
         this.playerName = playerName;
         
@@ -91,8 +86,8 @@ public class GameController extends JPanel implements MouseListener {
     public void restartGame(){
         try {
             Packet newPacket = new Packet("RESTART");
-            objectOutputStream.writeObject(newPacket);
-            objectOutputStream.flush();
+            outputStream.writeObject(newPacket);
+            outputStream.flush();
             resetBoard();
             yourTurn = this.goesFirst == true;
             gameEnded = false;
@@ -117,8 +112,8 @@ public class GameController extends JPanel implements MouseListener {
     public void surrender(){   
         try {
             Packet newPacket =  new Packet("SURRENDER");
-            objectOutputStream.writeObject(newPacket);
-            objectOutputStream.flush();
+            outputStream.writeObject(newPacket);
+            outputStream.flush();
             youWon = false;
             surrenderVictory = true;
             finishGame();
@@ -331,8 +326,8 @@ public class GameController extends JPanel implements MouseListener {
                         }
 
                         Packet newPacket = new Packet("GAME", switchBoardView(), shouldSwitch);
-                        objectOutputStream.writeObject(newPacket);
-                        objectOutputStream.flush();
+                        outputStream.writeObject(newPacket);
+                        outputStream.flush();
                     }
                 }
             } catch (IOException ex) {

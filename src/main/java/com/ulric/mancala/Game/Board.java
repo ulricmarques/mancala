@@ -1,6 +1,5 @@
 package com.ulric.mancala.Game;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -93,7 +92,7 @@ class Board {
     }
     
     public final void loadImages(){
-        ImageIcon image1 = new ImageIcon("src/resources/Jogador.png");
+        ImageIcon image1 = new ImageIcon(getClass().getClassLoader().getResource("Jogador.png"));
         boardImagePlayer = new BufferedImage(
         image1.getIconWidth(),
         image1.getIconHeight(),
@@ -102,7 +101,7 @@ class Board {
         image1.paintIcon(null, g1, 0,0);
         g1.dispose();
         
-        ImageIcon image2 = new ImageIcon("src/resources/Oponente.png");
+        ImageIcon image2 = new ImageIcon(getClass().getClassLoader().getResource("Oponente.png"));
         boardImageOpponent = new BufferedImage(
         image2.getIconWidth(),
         image2.getIconHeight(),

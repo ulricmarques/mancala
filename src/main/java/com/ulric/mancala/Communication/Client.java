@@ -15,11 +15,8 @@ public class Client {
     
     protected Socket socket;
     
-    protected DataInputStream inputStream;
-    protected DataOutputStream outputStream;
-    
-    public ObjectInputStream objectInputStream;
-    public ObjectOutputStream objectOutputStream;
+    public ObjectInputStream inputStream;
+    public ObjectOutputStream outputStream;
     
     protected int portNumber;
     protected String ip;
@@ -33,10 +30,8 @@ public class Client {
         try {
             System.out.println("IP: " + this.ip + " Port: " + this.portNumber);
             socket = new Socket(this.ip, this.portNumber);
-            outputStream = new DataOutputStream(socket.getOutputStream());
-            inputStream = new DataInputStream(socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(outputStream);
-            objectInputStream = new ObjectInputStream(inputStream);
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            inputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException ex) {
             System.out.println("Unable to connect to the address: " + this.ip + ":" + this.portNumber);
             return false;

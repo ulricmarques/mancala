@@ -145,15 +145,15 @@ public class SetupScreen implements ActionListener{
                 parentGUI.gameServer.listenForRequest();
             }
             
-            parentGUI.objectInputStream = parentGUI.gameServer.objectInputStream;
-            parentGUI.objectOutputStream = parentGUI.gameServer.objectOutputStream;
+            parentGUI.inputStream = parentGUI.gameServer.inputStream;
+            parentGUI.outputStream = parentGUI.gameServer.outputStream;
             
             parentGUI.start();
             
             changePages.show(parentGUI.switchPanels, "main");
             parentGUI.window.setSize(775, 595);
             parentGUI.window.setLayout(new GridLayout(2,0));
-            parentGUI.game = new GameController(parentGUI.objectInputStream, parentGUI.objectOutputStream, true, playerName);
+            parentGUI.game = new GameController(parentGUI.inputStream, parentGUI.outputStream, true, playerName);
             parentGUI.window.add(parentGUI.game);
             
         }
@@ -173,14 +173,14 @@ public class SetupScreen implements ActionListener{
             boolean connectionAccepted = parentGUI.gameClient.connect();
             
             
-            parentGUI.objectInputStream = parentGUI.gameClient.objectInputStream;
-            parentGUI.objectOutputStream = parentGUI.gameClient.objectOutputStream;
+            parentGUI.inputStream = parentGUI.gameClient.inputStream;
+            parentGUI.outputStream = parentGUI.gameClient.outputStream;
             
             parentGUI.start();
             changePages.show(parentGUI.switchPanels, "main");
             parentGUI.window.setSize(775, 595);
             parentGUI.window.setLayout(new GridLayout(2,0));
-            parentGUI.game = new GameController(parentGUI.objectInputStream, parentGUI.objectOutputStream, false, playerName);
+            parentGUI.game = new GameController(parentGUI.inputStream, parentGUI.outputStream, false, playerName);
             parentGUI.window.add(parentGUI.game);
         }
     }   

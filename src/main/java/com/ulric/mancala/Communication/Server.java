@@ -1,10 +1,9 @@
 package com.ulric.mancala.Communication;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -18,11 +17,8 @@ public class Server {
     protected ServerSocket serverSocket;
     protected Socket socket;
     
-    protected DataInputStream inputStream;
-    protected DataOutputStream outputStream;
-    
-    public ObjectInputStream objectInputStream;
-    public ObjectOutputStream objectOutputStream;
+    public ObjectInputStream inputStream;
+    public ObjectOutputStream outputStream;
     
     public boolean connectionAccepted = false;
     
@@ -35,6 +31,7 @@ public class Server {
         try {
             serverSocket = new ServerSocket(this.portNumber);
             System.out.println("Server initialized.");
+            System.out.println("Endereço: " + InetAddress.getLocalHost() );
         } catch (IOException e) {
         }
     }
@@ -42,12 +39,10 @@ public class Server {
     public void listenForRequest() {
         try {
             socket = serverSocket.accept();
-            outputStream = new DataOutputStream(socket.getOutputStream());
-            inputStream = new DataInputStream(socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(outputStream);
-            objectInputStream = new ObjectInputStream(inputStream);
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            inputStream = new ObjectInputStream(socket.getInputStream());
             this.connectionAccepted = true;
-            System.out.println("Client has requested to join.");
+            System.out.println("Client "+ socket.getInetAddress().getHostAddress() + " has requested to join.");
         } catch (IOException e) {
         }
     }

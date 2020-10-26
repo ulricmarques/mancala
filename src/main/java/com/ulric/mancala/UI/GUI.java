@@ -23,8 +23,8 @@ public class GUI extends Thread {
     protected ServerSocket serverSocket;
     protected Socket socket;
 
-    protected ObjectInputStream objectInputStream;
-    protected ObjectOutputStream objectOutputStream;
+    protected ObjectInputStream inputStream;
+    protected ObjectOutputStream outputStream;
     
     protected JPanel switchPanels; 
     protected JFrame window;
@@ -38,8 +38,6 @@ public class GUI extends Thread {
     
     protected Server gameServer;
     protected Client gameClient;
-    
-    private boolean accepted = false;
 
     public void runInterface() {
        
@@ -73,7 +71,7 @@ public class GUI extends Thread {
             String temp = "";
 
             while (true) {
-                message = (Packet) objectInputStream.readObject();
+                message = (Packet) inputStream.readObject();
                 if(!"".equals(message.type)){
                     if(message.type.equals("CHAT")){
                         if(!"".equals(message.text)){
