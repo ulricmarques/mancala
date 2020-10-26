@@ -1,4 +1,4 @@
-package com.ulric.mancala;
+package com.ulric.mancala.Game;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -19,45 +19,18 @@ class Board {
     final int cupHeight = 74;
     final int kallahWidth = 80;
     final int kallahHeight = 205;
-    final Color playerOneColor, playerTwoColor;
     
     private BufferedImage boardImagePlayer;
     private BufferedImage boardImageOpponent;
 
-    public Board(Color playerOneColor, Color playerTwoColor) {
-        this.playerOneColor = playerOneColor;
-        this.playerTwoColor = playerTwoColor;
-        
+    public Board() {
         loadImages();
     }
 
     public Dimension getSize() {
         int height = 2 * (marginLeft + cupHeight) + padding;
         int width = 6 * (cupWidth + padding ) + 2 * (kallahWidth + marginLeft);
-        System.out.println(width + " " + height);
         return new Dimension(width, height);
-    }
-
-    protected void drawCupsRow(Graphics g, int x, int y) {
-        for (int i = 0; i < 6; ++i ) {
-                g.drawOval(x, y, cupWidth, cupHeight);
-                x += cupWidth + padding;
-        }
-    }
-
-    protected void drawKallahs(Graphics g) {
-        int resize = 20;
-
-        g.setColor(playerTwoColor);
-        g.drawRect(marginLeft, marginTop + resize,
-                        kallahWidth, kallahHeight - resize*2);
-                       
-        
-        int x = 2*padding + kallahWidth + 6 * ( padding + cupWidth );
-
-        g.setColor(playerOneColor);
-        g.drawRect(x, marginTop + resize,
-                        kallahWidth, kallahHeight - resize*2);
     }
 
     public void drawBoard(Graphics g, boolean yourTurn) {
@@ -67,17 +40,7 @@ class Board {
         }else{
             g.drawImage(boardImageOpponent, 0, 0, null);
         }
-        
-        //drawKallahs(g);
-
-        int rowX = kallahWidth + padding * 2;
-
-        g.setColor(playerTwoColor);
-        //drawCupsRow(g, rowX, marginTop);
-
-        g.setColor(playerOneColor);
-        //drawCupsRow(g, rowX, 2*marginTop + cupHeight + padding );
-        
+            
     }
 
     public int getCupX(int cup) {
@@ -129,7 +92,7 @@ class Board {
         return y;
     }
     
-    public void loadImages(){
+    public final void loadImages(){
         ImageIcon image1 = new ImageIcon("src/resources/Jogador.png");
         boardImagePlayer = new BufferedImage(
         image1.getIconWidth(),

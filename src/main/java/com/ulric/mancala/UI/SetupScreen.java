@@ -1,5 +1,8 @@
-package com.ulric.mancala;
+package com.ulric.mancala.UI;
 
+import com.ulric.mancala.Communication.Client;
+import com.ulric.mancala.Game.GameController;
+import com.ulric.mancala.Communication.Server;
 import java.awt.CardLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;

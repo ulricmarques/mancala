@@ -1,5 +1,9 @@
-package com.ulric.mancala;
+package com.ulric.mancala.UI;
 
+import com.ulric.mancala.Communication.Client;
+import com.ulric.mancala.Game.GameController;
+import com.ulric.mancala.Communication.Packet;
+import com.ulric.mancala.Communication.Server;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.io.IOException;
@@ -65,11 +69,11 @@ public class GUI extends Thread {
     @Override
     public void run() {
         try {
-            Message message;
+            Packet message;
             String temp = "";
 
             while (true) {
-                message = (Message) objectInputStream.readObject();
+                message = (Packet) objectInputStream.readObject();
                 if(!"".equals(message.type)){
                     if(message.type.equals("CHAT")){
                         if(!"".equals(message.text)){

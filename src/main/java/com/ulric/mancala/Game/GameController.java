@@ -1,8 +1,10 @@
-package com.ulric.mancala;
+package com.ulric.mancala.Game;
 
+import com.ulric.mancala.Communication.Packet;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -22,7 +24,7 @@ import javax.swing.JPanel;
  *
  * @author Ulric
  */
-class GameController extends JPanel implements MouseListener {
+public class GameController extends JPanel implements MouseListener {
 
     final Board board;
 
@@ -39,11 +41,10 @@ class GameController extends JPanel implements MouseListener {
     private boolean gameEnded = false;
     private boolean surrenderVictory = false;
     
-    private final Color yourColor = Color.blue;
-    private final Color opponentColor = Color.red;
-    private final Color neutralColor = new Color(0,0,0, (float) 0.5);
+    private final Color stonesColor = new Color(0,0,0, (float) 0.5);
+    private final Color infoColor = new Color(0,0,0);
     
-    protected String playerName;
+    public String playerName;
     
     private final Font stonesFont = new Font("Arial", Font.BOLD, 20);
     private final Font infoFont = new Font("Arial", Font.BOLD, 20);
@@ -52,7 +53,8 @@ class GameController extends JPanel implements MouseListener {
 
     public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream,
             boolean goesFirst, String playerName) {
-        board = new Board(yourColor, opponentColor);
+        
+        board = new Board();
 
         this.objectOutputStream = objectOutputStream;
         this.objectInputStream = objectInputStream;
@@ -88,8 +90,8 @@ class GameController extends JPanel implements MouseListener {
     
     public void restartGame(){
         try {
-            Message newMessage = new Message("RESTART");
-            objectOutputStream.writeObject(newMessage);
+            Packet newPacket = new Packet("RESTART");
+            objectOutputStream.writeObject(newPacket);
             objectOutputStream.flush();
             resetBoard();
             yourTurn = this.goesFirst == true;
@@ -114,8 +116,8 @@ class GameController extends JPanel implements MouseListener {
 
     public void surrender(){   
         try {
-            Message newMessage =  new Message("SURRENDER");
-            objectOutputStream.writeObject(newMessage);
+            Packet newPacket =  new Packet("SURRENDER");
+            objectOutputStream.writeObject(newPacket);
             objectOutputStream.flush();
             youWon = false;
             surrenderVictory = true;
@@ -208,48 +210,41 @@ class GameController extends JPanel implements MouseListener {
 
     protected void paintPlayerInfo(Graphics g) {
 
+        String text;
+        int x, y;
+       
         if (!gameEnded) {
-            g.setFont(infoFont);
-            if ( yourTurn ) {
-                g.setColor(yourColor);
-                g.drawString("Seu turno", board.getCupCenterX(2), 250);
-            } else {
-                g.setColor(opponentColor);
-                g.drawString("Turno do oponente", board.getCupCenterX(2), 250);
-            }
+            text = yourTurn ? "Seu turno" : "Turno do oponente" ;
         } else {
-            g.setFont(infoFont);
-            g.setColor(neutralColor);
             if (draw) {
-                g.drawString("Empate!", board.getCupCenterX(2), 250);
+                text = "Empate!";
             } else {
                 if(youWon){
-                    if(surrenderVictory){
-                        g.drawString("Você venceu! (Por desistência)", board.getCupCenterX(1), 250);
-                    }else{
-                        g.drawString("Você venceu!", board.getCupCenterX(2), 250);
-                    }
+                    text = surrenderVictory ? "Você venceu! (Por desistência)" : "Você venceu!" ;
                 } else{
-                    if(surrenderVictory){
-                        g.drawString("Você perdeu! (Por desistência)", board.getCupCenterX(1), 250);
-                    }else{
-                        g.drawString("Você perdeu!", board.getCupCenterX(2), 250);
-                    }
+                    text = surrenderVictory ? "Você perdeu! (Por desistência)" : "Você perdeu!" ;
                 }
             }
         }
+        
+        FontMetrics fm = g.getFontMetrics();
+        x = (getWidth() - fm.stringWidth(text)) / 2;  
+        y = 250;
+        
+        g.drawString(text, x, y);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
+               
         board.drawBoard(g, yourTurn);
 
-        g.setColor(neutralColor);
+        g.setColor(stonesColor);
         drawStones(g);
 
-        g.setColor(neutralColor);
+        
+        g.setColor(infoColor);
         paintPlayerInfo(g);
 
     }
@@ -335,8 +330,8 @@ class GameController extends JPanel implements MouseListener {
                             yourTurn = false;
                         }
 
-                        Message newMessage = new Message("GAME", switchBoardView(), shouldSwitch);
-                        objectOutputStream.writeObject(newMessage);
+                        Packet newPacket = new Packet("GAME", switchBoardView(), shouldSwitch);
+                        objectOutputStream.writeObject(newPacket);
                         objectOutputStream.flush();
                     }
                 }

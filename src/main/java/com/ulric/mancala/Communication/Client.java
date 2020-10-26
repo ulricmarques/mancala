@@ -1,4 +1,4 @@
-package com.ulric.mancala;
+package com.ulric.mancala.Communication;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -20,8 +18,8 @@ public class Client {
     protected DataInputStream inputStream;
     protected DataOutputStream outputStream;
     
-    protected ObjectInputStream objectInputStream;
-    protected ObjectOutputStream objectOutputStream;
+    public ObjectInputStream objectInputStream;
+    public ObjectOutputStream objectOutputStream;
     
     protected int portNumber;
     protected String ip;
@@ -40,8 +38,7 @@ public class Client {
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectInputStream = new ObjectInputStream(inputStream);
         } catch (IOException ex) {
-            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("Unable to connect to the address: " + this.ip + ":" + this.portNumber + " | Starting a server");
+            System.out.println("Unable to connect to the address: " + this.ip + ":" + this.portNumber);
             return false;
         }
         System.out.println("Successfully connected to the server.");

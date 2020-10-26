@@ -1,4 +1,7 @@
 package com.ulric.mancala;
+
+import com.ulric.mancala.UI.GUI;
+
 /**
  *
  * @author Ulric

@@ -1,4 +1,4 @@
-package com.ulric.mancala;
+package com.ulric.mancala.Communication;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -21,10 +21,10 @@ public class Server {
     protected DataInputStream inputStream;
     protected DataOutputStream outputStream;
     
-    protected ObjectInputStream objectInputStream;
-    protected ObjectOutputStream objectOutputStream;
+    public ObjectInputStream objectInputStream;
+    public ObjectOutputStream objectOutputStream;
     
-    protected boolean connectionAccepted = false;
+    public boolean connectionAccepted = false;
     
     public Server(int portNumber) {
         
@@ -34,7 +34,7 @@ public class Server {
     public void initializeServer(){
         try {
             serverSocket = new ServerSocket(this.portNumber);
-            System.out.println("Server initialized");
+            System.out.println("Server initialized.");
         } catch (IOException e) {
         }
     }
@@ -47,7 +47,7 @@ public class Server {
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectInputStream = new ObjectInputStream(inputStream);
             this.connectionAccepted = true;
-            System.out.println("Client has requested to join and the server accepted");
+            System.out.println("Client has requested to join.");
         } catch (IOException e) {
         }
     }

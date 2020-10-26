@@ -1,5 +1,7 @@
-package com.ulric.mancala;
+package com.ulric.mancala.UI;
 
+import com.ulric.mancala.Game.GameController;
+import com.ulric.mancala.Communication.Packet;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,9 +30,9 @@ public class MainScreen implements ActionListener {
     private final JLabel labelMessageWrite;
     private final JLabel labelMessageRead;
     
-    private JButton runSurrender;
+    private final JButton runSurrender;
     private JButton runUndoTurn;
-    private JButton runRestartGame;
+    private final JButton runRestartGame;
 
     protected JTextArea display;
     protected JTextField input;
@@ -47,7 +49,7 @@ public class MainScreen implements ActionListener {
 
         labelMessageRead = new JLabel("Mensagens recebidas:");
         labelMessageRead.setForeground(Color.white);
-        labelMessageRead.setBounds(30, -5, 300, 40);
+        labelMessageRead.setBounds(21, -5, 300, 40);
         main.add(labelMessageRead);
 
         Border thinBorder = LineBorder.createBlackLineBorder();
@@ -61,7 +63,7 @@ public class MainScreen implements ActionListener {
 
         labelMessageWrite = new JLabel("Digite sua mensagem: (ENTER para enviar)");
         labelMessageWrite.setForeground(Color.white);
-        labelMessageWrite.setBounds(30, 180, 300, 40);
+        labelMessageWrite.setBounds(21, 180, 300, 40);
         main.add(labelMessageWrite);
 
         input = new JTextField();
@@ -88,9 +90,9 @@ public class MainScreen implements ActionListener {
     public void writeMessage() {
 
         try {
-            String temp = "";
-            Message newMessage = new Message("CHAT", input.getText());
-            parentGUI.objectOutputStream.writeObject(newMessage);
+            String temp;
+            Packet newPacket = new Packet("CHAT", input.getText());
+            parentGUI.objectOutputStream.writeObject(newPacket);
             parentGUI.objectOutputStream.flush();
             if(!"".equals(input.getText())){
                 temp = display.getText() + "Você: " + input.getText() + "\n";
