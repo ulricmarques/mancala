@@ -9,6 +9,8 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -16,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -26,8 +29,11 @@ public class GameController extends JPanel implements MouseListener {
 
     final Board board;
 
-    private ObjectInputStream inputStream;
-    private ObjectOutputStream outputStream;
+    private DataInputStream inputStream;
+    private DataOutputStream outputStream;
+
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
 
     private final boolean goesFirst;
     private boolean yourTurn;
@@ -46,13 +52,13 @@ public class GameController extends JPanel implements MouseListener {
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
 
-    public GameController(ObjectInputStream inputStream, ObjectOutputStream outputStream,
+    public GameController(ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream,
             boolean goesFirst, String playerName) {
         
         board = new Board();
 
-        this.outputStream = outputStream;
-        this.inputStream = inputStream;
+        this.objectOutputStream = objectOutputStream;
+        this.objectInputStream = objectInputStream;
 
         this.playerName = playerName;
         
@@ -85,9 +91,11 @@ public class GameController extends JPanel implements MouseListener {
     
     public void restartGame(){
         try {
-            Packet newPacket = new Packet("RESTART");
-            outputStream.writeObject(newPacket);
-            outputStream.flush();
+            Packet newPacket = new Packet("RESTART", playerName);
+            objectOutputStream.writeObject(newPacket);
+            objectOutputStream.flush();
+            youWon = false;
+            showEndgameInfo(true);
             resetBoard();
             yourTurn = this.goesFirst == true;
             gameEnded = false;
@@ -98,6 +106,8 @@ public class GameController extends JPanel implements MouseListener {
     }
     
     public void handleRestart(){
+        youWon = true;
+        showEndgameInfo(true);
         resetBoard();
         yourTurn = this.goesFirst == true;
         gameEnded = false;
@@ -107,17 +117,18 @@ public class GameController extends JPanel implements MouseListener {
     public void finishGame(){
         gameEnded = true;
         removeMouseListener(this);
+        showEndgameInfo(false);
+        System.exit(0);
     }
 
     public void surrender(){   
         try {
-            Packet newPacket =  new Packet("SURRENDER");
-            outputStream.writeObject(newPacket);
-            outputStream.flush();
+            Packet newPacket =  new Packet("SURRENDER", playerName);
+            objectOutputStream.writeObject(newPacket);
+            objectOutputStream.flush();
             youWon = false;
             surrenderVictory = true;
             finishGame();
-            repaint();
         } catch (IOException ex) {
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -128,7 +139,32 @@ public class GameController extends JPanel implements MouseListener {
         surrenderVictory = true;
         repaint();
         finishGame();
-        repaint();
+    }
+    
+      private void showEndgameInfo(boolean restart){
+        String text;
+        
+        if(restart){
+            if(youWon){
+                text = "O oponente reiniciou a partida. Você venceu!";
+            } else{
+                text = "Você reiniciou a partida. Você perdeu!";
+            }
+        } 
+        else {
+            if (draw) {
+            text = "Empate!";
+            } else {
+                if(youWon){
+                    text = surrenderVictory ? "Você venceu! (Por desistência)" : "Você venceu!" ;
+                } else{
+                    text = surrenderVictory ? "Você perdeu! (Por desistência)" : "Você perdeu!" ;
+                }
+            }
+        }
+        
+
+        JOptionPane.showMessageDialog(this, text, "Fim de jogo", JOptionPane.INFORMATION_MESSAGE);
     }
     
     protected boolean moveStones(final int cup) {
@@ -148,7 +184,7 @@ public class GameController extends JPanel implements MouseListener {
 
             // Pula a kallah adversária e reseta o contador.
             if (counter == 13) {
-                counter = 0;
+                counter = -1;
             } else {
                 currentBoardState[counter]++;
                 stones--;
@@ -202,31 +238,21 @@ public class GameController extends JPanel implements MouseListener {
                                            board.getCupCenterY(cup) + cy);
         }
     }
-
-    protected void paintPlayerInfo(Graphics g) {
+    
+    private void paintPlayerInfo(Graphics g) {
 
         String text;
         int x, y;
        
         if (!gameEnded) {
             text = yourTurn ? "Seu turno" : "Turno do oponente" ;
-        } else {
-            if (draw) {
-                text = "Empate!";
-            } else {
-                if(youWon){
-                    text = surrenderVictory ? "Você venceu! (Por desistência)" : "Você venceu!" ;
-                } else{
-                    text = surrenderVictory ? "Você perdeu! (Por desistência)" : "Você perdeu!" ;
-                }
-            }
-        }
-        
-        FontMetrics fm = g.getFontMetrics();
-        x = (getWidth() - fm.stringWidth(text)) / 2;  
-        y = 250;
-        
-        g.drawString(text, x, y);
+            
+            FontMetrics fm = g.getFontMetrics();
+            x = (getWidth() - fm.stringWidth(text)) / 2;  
+            y = 250;
+
+            g.drawString(text, x, y);
+        } 
     }
 
     @Override
@@ -325,9 +351,9 @@ public class GameController extends JPanel implements MouseListener {
                             yourTurn = false;
                         }
 
-                        Packet newPacket = new Packet("GAME", switchBoardView(), shouldSwitch);
-                        outputStream.writeObject(newPacket);
-                        outputStream.flush();
+                        Packet newPacket = new Packet("GAME", playerName, switchBoardView(), shouldSwitch);
+                        objectOutputStream.writeObject(newPacket);
+                        objectOutputStream.flush();
                     }
                 }
             } catch (IOException ex) {

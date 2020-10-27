@@ -40,7 +40,7 @@ public class SetupScreen implements ActionListener{
     private final JLabel labelNameHost;
     private final JLabel labelNameJoin;
     
-
+    
     private final JTabbedPane tabbedPane;
     
     public SetupScreen(GUI parentGUI)  {
@@ -75,7 +75,7 @@ public class SetupScreen implements ActionListener{
         panelHost.add(labelServerPort);
         panelHost.add(inputNameHost);
         panelHost.add(labelNameHost);
-     
+        
         // Entrar
         panelJoin = new JPanel();
         panelJoin.setLayout(null); 

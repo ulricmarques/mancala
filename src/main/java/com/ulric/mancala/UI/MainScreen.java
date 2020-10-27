@@ -91,7 +91,7 @@ public class MainScreen implements ActionListener {
 
         try {
             String temp;
-            Packet newPacket = new Packet("CHAT", input.getText());
+            Packet newPacket = new Packet("CHAT", parentGUI.game.playerName, input.getText());
             parentGUI.outputStream.writeObject(newPacket);
             parentGUI.outputStream.flush();
             if(!"".equals(input.getText())){

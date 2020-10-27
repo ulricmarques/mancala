@@ -75,7 +75,7 @@ public class GUI extends Thread {
                 if(!"".equals(message.type)){
                     if(message.type.equals("CHAT")){
                         if(!"".equals(message.text)){
-                            temp = mainScreen.display.getText() + game.playerName + ": "  + message.text + "\n";
+                            temp = mainScreen.display.getText() + message.playerName + ": "  + message.text + "\n";
                             mainScreen.display.setText(temp);
                         }
                     }
