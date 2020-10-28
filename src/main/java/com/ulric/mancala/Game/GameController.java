@@ -264,7 +264,6 @@ public class GameController extends JPanel implements MouseListener {
         g.setColor(stonesColor);
         drawStones(g);
 
-        
         g.setColor(infoColor);
         paintPlayerInfo(g);
 

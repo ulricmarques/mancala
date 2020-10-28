@@ -41,7 +41,7 @@ public class SetupScreen implements ActionListener{
     private final JLabel labelNameJoin;
     
     
-    private final JTabbedPane tabbedPane;
+    protected final JTabbedPane tabbedPane;
     
     public SetupScreen(GUI parentGUI)  {
         this.parentGUI = parentGUI;
@@ -121,10 +121,6 @@ public class SetupScreen implements ActionListener{
                   "Entrar em um jogo");
     }
     
-    public JTabbedPane getTabbedPane(){
-        return this.tabbedPane;
-    }
-    
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -139,23 +135,30 @@ public class SetupScreen implements ActionListener{
             String playerName = inputNameHost.getText();
             
             
+            
             parentGUI.gameServer = new Server(portNumber);
-            parentGUI.gameServer.initializeServer();
-            if (!parentGUI.gameServer.connectionAccepted) {
-                parentGUI.gameServer.listenForRequest();
+            boolean serverCreated = parentGUI.gameServer.initializeServer();
+            
+            if(!serverCreated){
+                JOptionPane.showMessageDialog(null, "Não foi possível criar o servidor. "
+                        + "A porta digitada pode estar ocupada.");
             }
+            else {
+                if (!parentGUI.gameServer.connectionAccepted) {
+                    parentGUI.gameServer.listenForRequest();
+                }
             
-            parentGUI.inputStream = parentGUI.gameServer.inputStream;
-            parentGUI.outputStream = parentGUI.gameServer.outputStream;
-            
-            parentGUI.start();
-            
-            changePages.show(parentGUI.switchPanels, "main");
-            parentGUI.window.setSize(775, 595);
-            parentGUI.window.setLayout(new GridLayout(2,0));
-            parentGUI.game = new GameController(parentGUI.inputStream, parentGUI.outputStream, true, playerName);
-            parentGUI.window.add(parentGUI.game);
-            
+                parentGUI.inputStream = parentGUI.gameServer.inputStream;
+                parentGUI.outputStream = parentGUI.gameServer.outputStream;
+
+                parentGUI.start();
+
+                changePages.show(parentGUI.switchPanels, "main");
+                parentGUI.window.setSize(775, 595);
+                parentGUI.window.setLayout(new GridLayout(2,0));
+                parentGUI.game = new GameController(parentGUI.inputStream, parentGUI.outputStream, true, playerName);
+                parentGUI.window.add(parentGUI.game);
+            }
         }
 
         if (e.getSource() == runJoin  && (inputClientPort.getText().length() < 1 || inputNameJoin.getText().length() < 1)) {
@@ -172,16 +175,22 @@ public class SetupScreen implements ActionListener{
             parentGUI.gameClient = new Client(hostNumber, portNumber);
             boolean connectionAccepted = parentGUI.gameClient.connect();
             
-            
-            parentGUI.inputStream = parentGUI.gameClient.inputStream;
-            parentGUI.outputStream = parentGUI.gameClient.outputStream;
-            
-            parentGUI.start();
-            changePages.show(parentGUI.switchPanels, "main");
-            parentGUI.window.setSize(775, 595);
-            parentGUI.window.setLayout(new GridLayout(2,0));
-            parentGUI.game = new GameController(parentGUI.inputStream, parentGUI.outputStream, false, playerName);
-            parentGUI.window.add(parentGUI.game);
+            if(!connectionAccepted){
+                JOptionPane.showMessageDialog(null, "Não foi possível conectar ao servidor. "
+                        + "Verifique os dados digitados e tente novamente.");
+            }
+            else{
+                parentGUI.inputStream = parentGUI.gameClient.inputStream;
+                parentGUI.outputStream = parentGUI.gameClient.outputStream;
+
+                parentGUI.start();
+                changePages.show(parentGUI.switchPanels, "main");
+                parentGUI.window.setSize(775, 595);
+                parentGUI.window.setLayout(new GridLayout(2,0));
+                parentGUI.game = new GameController(parentGUI.inputStream, parentGUI.outputStream, false, playerName);
+                parentGUI.window.add(parentGUI.game);
+            }
+
         }
     }   
 }

@@ -24,7 +24,7 @@ public class MainScreen implements ActionListener {
     
     protected GUI parentGUI;
     
-    private final JPanel main;
+    protected final JPanel panelMain;
     private GameController game;
     
     private final JLabel labelMessageWrite;
@@ -42,15 +42,15 @@ public class MainScreen implements ActionListener {
         
         this.parentGUI = parentGUI;
     
-        main = new JPanel();
-        main.setLayout(null); 
-        main.setSize(300, 400);
-        main.setBackground(new Color(0,0,0));
+        panelMain = new JPanel();
+        panelMain.setLayout(null); 
+        panelMain.setSize(300, 400);
+        panelMain.setBackground(new Color(0,0,0));
 
         labelMessageRead = new JLabel("Mensagens recebidas:");
         labelMessageRead.setForeground(Color.white);
         labelMessageRead.setBounds(21, -5, 300, 40);
-        main.add(labelMessageRead);
+        panelMain.add(labelMessageRead);
 
         Border thinBorder = LineBorder.createBlackLineBorder();
         display = new JTextArea();
@@ -59,17 +59,17 @@ public class MainScreen implements ActionListener {
         scrollBar = new JScrollPane(display);
         scrollBar.setBounds(20, 30, 450, 150);
 
-        main.add(scrollBar);
+        panelMain.add(scrollBar);
 
         labelMessageWrite = new JLabel("Digite sua mensagem: (ENTER para enviar)");
         labelMessageWrite.setForeground(Color.white);
         labelMessageWrite.setBounds(21, 180, 300, 40);
-        main.add(labelMessageWrite);
+        panelMain.add(labelMessageWrite);
 
         input = new JTextField();
         input.setBounds(20, 220, 450, 30);
         input.addActionListener(this);
-        main.add(input);
+        panelMain.add(input);
         
         runSurrender = new JButton("Desistir");
         runSurrender.setBounds(550, 30, 130, 30);
@@ -79,12 +79,8 @@ public class MainScreen implements ActionListener {
         runRestartGame.setBounds(550, 90, 130, 30);
         runRestartGame.addActionListener(this);
          
-        main.add(runSurrender);
-        main.add(runRestartGame);
-    }
-    
-    public JPanel getMainPanel(){
-        return this.main;
+        panelMain.add(runSurrender);
+        panelMain.add(runRestartGame);
     }
     
     public void writeMessage() {

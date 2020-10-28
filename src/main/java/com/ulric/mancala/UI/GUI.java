@@ -46,11 +46,11 @@ public class GUI extends Thread {
         switchPanels = new JPanel(new CardLayout());
         
         setupScreen = new SetupScreen(this);
-        switchPanels.add(setupScreen.getTabbedPane(), "setup");
+        switchPanels.add(setupScreen.tabbedPane, "setup");
 
         mainScreen = new MainScreen(this);
   
-        switchPanels.add(mainScreen.getMainPanel(), "main");
+        switchPanels.add(mainScreen.panelMain, "main");
         window.add(switchPanels);
 
         window.setResizable(false); 

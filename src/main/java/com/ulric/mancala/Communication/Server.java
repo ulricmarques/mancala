@@ -27,13 +27,13 @@ public class Server {
         this.portNumber = portNumber;
     }
     
-    public void initializeServer(){
+    public boolean initializeServer(){
         try {
             serverSocket = new ServerSocket(this.portNumber);
-            System.out.println("Server initialized.");
-            System.out.println("Endereço: " + InetAddress.getLocalHost() );
         } catch (IOException e) {
+            return false;
         }
+        return true;
     }
     
     public void listenForRequest() {
@@ -42,7 +42,6 @@ public class Server {
             outputStream = new ObjectOutputStream(socket.getOutputStream());
             inputStream = new ObjectInputStream(socket.getInputStream());
             this.connectionAccepted = true;
-            System.out.println("Client "+ socket.getInetAddress().getHostAddress() + " has requested to join.");
         } catch (IOException e) {
         }
     }
