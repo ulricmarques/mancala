@@ -141,7 +141,7 @@ public class SetupScreen implements ActionListener{
             
             if(!serverCreated){
                 JOptionPane.showMessageDialog(null, "Não foi possível criar o servidor. "
-                        + "A porta digitada pode estar ocupada.");
+                        + "A porta digitada pode estar ocupada.","Falha ao criar servidor", JOptionPane.ERROR_MESSAGE);
             }
             else {
                 if (!parentGUI.gameServer.connectionAccepted) {
@@ -177,7 +177,7 @@ public class SetupScreen implements ActionListener{
             
             if(!connectionAccepted){
                 JOptionPane.showMessageDialog(null, "Não foi possível conectar ao servidor. "
-                        + "Verifique os dados digitados e tente novamente.");
+                        + "Verifique os dados digitados e tente novamente.", "Falha ao conectar", JOptionPane.ERROR_MESSAGE);
             }
             else{
                 parentGUI.inputStream = parentGUI.gameClient.inputStream;
