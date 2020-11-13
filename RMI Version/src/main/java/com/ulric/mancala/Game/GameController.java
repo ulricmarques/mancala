@@ -1,8 +1,10 @@
 package com.ulric.mancala.Game;
 
 import com.ulric.mancala.Communication.MancalaInterface;
-import com.ulric.mancala.Communication.Packet;
 import com.ulric.mancala.UI.GUI;
+
+import java.rmi.server.UnicastRemoteObject;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -17,6 +19,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,9 +31,10 @@ import javax.swing.JPanel;
  *
  * @author Ulric
  */
-public class GameController extends JPanel implements MouseListener, MancalaInterface {
+public class GameController extends UnicastRemoteObject implements MancalaInterface {
 
     final Board board;
+    public final Painter painter;
     
     public Registry registry;
     public MancalaInterface opponent;
@@ -46,6 +50,8 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
     private final Color infoColor = new Color(0,0,0);
     
     public String playerName;
+    public String hostNumber;
+    public int portNumber;
     
     private GUI parentGUI;
     
@@ -54,27 +60,31 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
 
-    public GameController(GUI parentGUI, boolean isServer, boolean goesFirst) {
+    public GameController(GUI parentGUI, boolean isServer, boolean goesFirst) throws RemoteException{
         
         this.parentGUI = parentGUI;
         this.playerName = this.parentGUI.setupScreen.playerName;
-        int portNumber = this.parentGUI.setupScreen.portNumber;
-        String hostNumber = this.parentGUI.setupScreen.hostNumber;
-        
+        this.portNumber = this.parentGUI.setupScreen.portNumber;
+        this.hostNumber = this.parentGUI.setupScreen.hostNumber;
         
         if(isServer){
             try {
                 this.registry = LocateRegistry.createRegistry(portNumber);
                 this.registry.bind("//"+hostNumber+":"+portNumber+"/Server",this);
+                System.out.println(Arrays.toString(this.registry.list()));
                 System.out.println("Server registry created. Waiting for a client...");
             } catch (RemoteException | AlreadyBoundException ex) {
                 System.out.println("Server creation failed: " + ex);
             }
-        }else{
+        }
+        else{
             try {
                 this.registry = LocateRegistry.getRegistry(portNumber);
+                System.out.println(playerName + " " +hostNumber + " " + portNumber);
+                System.out.println(Arrays.toString(this.registry.list()));
                 this.registry.bind("//"+hostNumber+":"+portNumber+"/Client",this);
                 System.out.println("Client registry created");
+                System.out.println(Arrays.toString(this.registry.list()));
                 this.opponent = (MancalaInterface) this.registry.lookup("//"+hostNumber+":"+portNumber+"/Server");
                 this.opponent.connectToOpponent();
             } catch (RemoteException | AlreadyBoundException ex) {
@@ -85,71 +95,69 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
         }
         
         board = new Board();
+        
+        painter = new Painter();
 
         this.goesFirst = goesFirst;
 
         yourTurn = this.goesFirst == true;
 
-        setBorder(BorderFactory.createLineBorder(Color.black));
-        addMouseListener(this);      
     }
     
-    @Override
-    public Dimension getPreferredSize() {
-        return board.getSize();
-    }
-
-    public void updateGameState(int[] boardState, boolean switchTurn){
-        currentBoardState = boardState;
-        checkForWin();
-        repaint();
-        if(switchTurn){
-            yourTurn = true;
-        }
-    }
-
     public void resetBoard(){
         int[] initialBoard = { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
         currentBoardState = initialBoard;
     }
     
     public void restartGame(){
-        Packet newPacket = new Packet("RESTART", playerName);
         youWon = false;
         showEndgameInfo(true);
         resetBoard();
         yourTurn = this.goesFirst == true;
         gameEnded = false;
-        repaint();
+        try {
+            opponent.handleRestart();
+        } catch (RemoteException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        painter.repaint();
+        
     }
     
+    @Override
     public void handleRestart(){
         youWon = true;
         showEndgameInfo(true);
         resetBoard();
         yourTurn = this.goesFirst == true;
         gameEnded = false;
-        repaint();
+        painter.repaint();
     }
     
     public void finishGame(){
         gameEnded = true;
-        removeMouseListener(this);
+        painter.removeMouseListener(this.painter);
         showEndgameInfo(false);
         System.exit(0);
     }
 
     public void surrender(){   
-        Packet newPacket =  new Packet("SURRENDER", playerName);
         youWon = false;
         surrenderVictory = true;
+        try {
+            opponent.handleSurrender();
+        } catch (RemoteException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         finishGame();
+        
     }
     
+    @Override
     public void handleSurrender(){
         youWon = true;
         surrenderVictory = true;
-        repaint();
+        painter.repaint();
         finishGame();
     }
     
@@ -175,8 +183,7 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
             }
         }
         
-
-        JOptionPane.showMessageDialog(this, text, "Fim de jogo", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(painter, text, "Fim de jogo", JOptionPane.INFORMATION_MESSAGE);
     }
     
     protected boolean moveStones(final int cup) {
@@ -201,7 +208,7 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
                 currentBoardState[counter]++;
                 stones--;
             }
-            repaint();
+            painter.repaint();
         }
 
         // Aponta para a casa oposta.
@@ -260,27 +267,13 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
             text = yourTurn ? "Seu turno" : "Turno do oponente" ;
             
             FontMetrics fm = g.getFontMetrics();
-            x = (getWidth() - fm.stringWidth(text)) / 2;  
+            x = (painter.getWidth() - fm.stringWidth(text)) / 2;  
             y = 250;
 
             g.drawString(text, x, y);
         } 
     }
-
-    @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-               
-        board.drawBoard(g, yourTurn);
-
-        g.setColor(stonesColor);
-        drawStones(g);
-
-        g.setColor(infoColor);
-        paintPlayerInfo(g);
-
-    }
-
+    
     public void checkForWin() {
         boolean topRowEmpty = true, bottomRowEmpty = true;
 
@@ -339,46 +332,97 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
         // Retorna se o seu turno acabou.
         return !result && !gameEnded;
      }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        if (yourTurn && !gameEnded) {
-            int x, y;
-            int mx = e.getX();
-            int my = e.getY();
-            // Percorre as casas na fileira de baixo.
-            for (int cup = 0; cup < 6; ++cup) {
-                x = board.getCupX(cup);
-                y = board.getCupY(cup);
-                
-                // Checa se o clique foi na casa da iteração atual.
-                if (mx > x && mx < x + board.cupWidth && my > y && my < y + board.cupHeight )  {
-                    boolean shouldSwitch = doPlayerTurn(cup);
-                    repaint();
-                    
-                    if(shouldSwitch){
-                        yourTurn = false;
-                    }
-                    
-                    Packet newPacket = new Packet("GAME", playerName, switchBoardView(), shouldSwitch);
-                }
-            }
-        }
-    }
-
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
-
     
     @Override
     public void updateChat(String playerName, String text) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String temp;
+        if(!"".equals(text)){
+            temp = this.parentGUI.mainScreen.display.getText() + playerName + ": "  + text + "\n";
+            this.parentGUI.mainScreen.display.setText(temp);
+        }
     }
 
     @Override
     public void connectToOpponent() throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            this.opponent = (MancalaInterface )registry.lookup("//"+hostNumber+":"+portNumber+"/Client");
+            System.out.println("Succesfully connected to client");
+        } catch (NotBoundException | AccessException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Could not connect to client: " + ex);
+        }
+    }
+
+    @Override
+    public void updateBoardState(int[] boardState, boolean switchTurn) throws RemoteException {
+        currentBoardState = boardState;
+        checkForWin();
+        painter.repaint();
+        if(switchTurn){
+            yourTurn = true;
+        }
+    }
+
+  
+    class Painter extends JPanel implements MouseListener {
+        public Painter() {
+
+            setBorder(BorderFactory.createLineBorder(Color.black));
+            addMouseListener(this);      
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            board.drawBoard(g, yourTurn);
+
+            g.setColor(stonesColor);
+            drawStones(g);
+
+            g.setColor(infoColor);
+            paintPlayerInfo(g);
+
+        }
+        
+        @Override
+        public Dimension getPreferredSize() {
+            return board.getSize();
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (yourTurn && !gameEnded) {
+                int x, y;
+                int mx = e.getX();
+                int my = e.getY();
+                // Percorre as casas na fileira de baixo.
+                for (int cup = 0; cup < 6; ++cup) {
+                    x = board.getCupX(cup);
+                    y = board.getCupY(cup);
+
+                    // Checa se o clique foi na casa da iteração atual.
+                    if (mx > x && mx < x + board.cupWidth && my > y && my < y + board.cupHeight )  {
+                        boolean shouldSwitch = doPlayerTurn(cup);
+                        repaint();
+
+                        if(shouldSwitch){
+                            yourTurn = false;
+                        }
+                        
+                        try {
+                            opponent.updateBoardState(switchBoardView(), shouldSwitch);
+                        } catch (RemoteException ex) {
+                            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }
+        
+        @Override public void mouseEntered(MouseEvent e) {}
+        @Override public void mouseExited(MouseEvent e) {}
+        @Override public void mousePressed(MouseEvent e) {}
+        @Override public void mouseReleased(MouseEvent e) {}
     }
 }

@@ -1,19 +1,12 @@
 package com.ulric.mancala.UI;
 
-import com.ulric.mancala.Communication.Client;
-import com.ulric.mancala.Communication.MancalaInterface;
 import com.ulric.mancala.Game.GameController;
 import java.awt.CardLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.MalformedURLException;
-import java.rmi.AccessException;
-import java.rmi.AlreadyBoundException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
+import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +21,7 @@ import javax.swing.JTextField;
  *
  * @author Ulric
  */
-public class SetupScreen implements ActionListener{
+public class SetupScreen implements ActionListener, Serializable{
    
     protected GUI parentGUI;
     protected Registry registry;
@@ -36,7 +29,8 @@ public class SetupScreen implements ActionListener{
     private final JPanel panelHost;
     private final JPanel panelJoin;
     
-    private final JTextField inputHost;
+    private final JTextField inputServerHost;
+    private final JTextField inputClientHost;
     private final JTextField inputNameHost;
     private final JTextField inputNameJoin;
     private final JTextField inputServerPort;
@@ -45,7 +39,8 @@ public class SetupScreen implements ActionListener{
     private final JButton runHost;
     private final JButton runJoin;
     
-    private final JLabel labelIP;
+    private final JLabel labelServerIP;
+    private final JLabel labelClientIP;
     private final JLabel labelServerPort;
     private final JLabel labelClientPort;
     private final JLabel labelNameHost;
@@ -73,18 +68,27 @@ public class SetupScreen implements ActionListener{
         labelNameHost = new JLabel("Digite seu nome:");
         labelNameHost.setBounds(60, 30, 400, 40);
         
+        inputServerHost = new JTextField();
+        inputServerHost.setBounds(60, 130, 400, 40);
+        inputServerHost.setText("localhost");
+        inputServerHost.addActionListener(this);
+        labelServerIP = new JLabel("Digite o IP");
+        labelServerIP.setBounds(60, 100, 300, 40);
+        
         inputServerPort = new JTextField();
-        inputServerPort.setBounds(60, 130, 400, 40);
+        inputServerPort.setBounds(60, 200, 400, 40);
         inputServerPort.addActionListener(this);
         inputServerPort.setText("5000");
         labelServerPort = new JLabel("Digite a porta:");
-        labelServerPort.setBounds(60, 100, 400, 40);
+        labelServerPort.setBounds(60, 170, 400, 40);
         
         runHost = new JButton("Iniciar servidor");
-        runHost.setBounds(200, 180, 120, 50);
+        runHost.setBounds(200, 250, 120, 50);
         runHost.addActionListener(this);
         
         panelHost.add(runHost);
+        panelHost.add(labelServerIP);
+        panelHost.add(inputServerHost);
         panelHost.add(inputServerPort);
         panelHost.add(labelServerPort);
         panelHost.add(inputNameHost);
@@ -102,12 +106,12 @@ public class SetupScreen implements ActionListener{
         labelNameJoin = new JLabel("Digite seu nome:");
         labelNameJoin.setBounds(60, 30, 400, 40);
 
-        inputHost = new JTextField();
-        inputHost.setBounds(60, 130, 400, 40);
-        inputHost.setText("localhost");
-        inputHost.addActionListener(this);
-        labelIP = new JLabel("Digite o IP");
-        labelIP.setBounds(60, 100, 300, 40);
+        inputClientHost = new JTextField();
+        inputClientHost.setBounds(60, 130, 400, 40);
+        inputClientHost.setText("localhost");
+        inputClientHost.addActionListener(this);
+        labelClientIP = new JLabel("Digite o IP");
+        labelClientIP.setBounds(60, 100, 300, 40);
 
         inputClientPort = new JTextField();
         inputClientPort.setBounds(60, 200, 400, 40);
@@ -122,8 +126,8 @@ public class SetupScreen implements ActionListener{
         runJoin.addActionListener(this);
         
         panelJoin.add(runJoin);
-        panelJoin.add(labelIP);
-        panelJoin.add(inputHost);
+        panelJoin.add(labelClientIP);
+        panelJoin.add(inputClientHost);
         panelJoin.add(labelClientPort);
         panelJoin.add(inputClientPort);
         panelJoin.add(labelNameJoin);
@@ -145,6 +149,7 @@ public class SetupScreen implements ActionListener{
         }
 
         if (e.getSource() == runHost && inputServerPort.getText().length() > 0 && inputNameHost.getText().length() > 0) {
+            hostNumber = inputServerHost.getText();
             portNumber = Integer.parseInt(inputServerPort.getText());
             playerName = inputNameHost.getText();
             boolean serverCreated = true;
@@ -157,8 +162,12 @@ public class SetupScreen implements ActionListener{
                 changePages.show(parentGUI.switchPanels, "main");
                 parentGUI.window.setSize(775, 595);
                 parentGUI.window.setLayout(new GridLayout(2,0));
-                parentGUI.game = new GameController(parentGUI, true, true);
-                parentGUI.window.add(parentGUI.game);
+                try {
+                    parentGUI.game = new GameController(parentGUI, true, true);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(SetupScreen.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                parentGUI.window.add(parentGUI.game.painter);
             }
         }
 
@@ -170,7 +179,7 @@ public class SetupScreen implements ActionListener{
         if (e.getSource() == runJoin  && inputClientPort.getText().length() > 0 && inputNameJoin.getText().length() > 0) {
             
             portNumber = Integer.parseInt(inputClientPort.getText());
-            hostNumber = inputHost.getText();
+            hostNumber = inputClientHost.getText();
             playerName = inputNameJoin.getText();
       
             boolean connectionAccepted = true;
@@ -182,8 +191,12 @@ public class SetupScreen implements ActionListener{
                 changePages.show(parentGUI.switchPanels, "main");
                 parentGUI.window.setSize(775, 595);
                 parentGUI.window.setLayout(new GridLayout(2,0));
-                parentGUI.game = new GameController(parentGUI, false, false);
-                parentGUI.window.add(parentGUI.game);
+                try {
+                    parentGUI.game = new GameController(parentGUI, false, false);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(SetupScreen.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                parentGUI.window.add(parentGUI.game.painter);
             }
         }
     }   

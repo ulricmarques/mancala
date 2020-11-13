@@ -4,6 +4,7 @@ import com.ulric.mancala.Game.GameController;
 
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 import javax.swing.JFrame;
@@ -13,7 +14,7 @@ import javax.swing.JPanel;
  *
  * @author Ulric
  */
-public class GUI {
+public class GUI implements Serializable{
         
     protected ServerSocket serverSocket;
     protected Socket socket;
@@ -27,7 +28,7 @@ public class GUI {
     public SetupScreen setupScreen;
     public MainScreen mainScreen;
    
-    public GUI() {
+    public GUI(){
         window = new JFrame("Mancala");
         
         switchPanels = new JPanel(new CardLayout());

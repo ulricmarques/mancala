@@ -5,10 +5,7 @@ import com.ulric.mancala.Game.GameController;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +23,7 @@ import javax.swing.border.LineBorder;
  *
  * @author Ulric
  */
-public class MainScreen implements ActionListener {
+public class MainScreen implements ActionListener, Serializable {
     
     protected GUI parentGUI;
     
@@ -95,12 +92,23 @@ public class MainScreen implements ActionListener {
     public void actionPerformed(ActionEvent e) {
   
         if (!input.getText().equals("")) {
-            //sendMessage(parentGUI.game.playerName, input.getText());
+            String temp;
+   
+            temp = display.getText() + "Você: " + input.getText() + "\n";
+            display.setText(temp);
+            try {
+                parentGUI.game.opponent.updateChat(parentGUI.game.playerName, input.getText());
+            } catch (RemoteException ex) {
+                Logger.getLogger(MainScreen.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            input.setText("");
+
         }
         
         if (e.getSource() == runSurrender) {
             int response = JOptionPane.showConfirmDialog(
-                    parentGUI.game, 
+                    parentGUI.game.painter, 
                     "Deseja mesmo desistir da partida?", 
                     "Confirmação de desistência", 
                     JOptionPane.YES_NO_OPTION);    
@@ -113,7 +121,7 @@ public class MainScreen implements ActionListener {
         
         if (e.getSource() == runRestartGame) {
             int response = JOptionPane.showConfirmDialog(
-                    parentGUI.game, 
+                    parentGUI.game.painter, 
                     "Deseja mesmo reiniciar a partida? Isso contará como desistência.", 
                     "Confirmação de reinício", 
                     JOptionPane.YES_NO_OPTION);    
