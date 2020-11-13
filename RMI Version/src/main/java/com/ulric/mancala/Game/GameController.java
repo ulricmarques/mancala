@@ -2,6 +2,7 @@ package com.ulric.mancala.Game;
 
 import com.ulric.mancala.Communication.MancalaInterface;
 import com.ulric.mancala.Communication.Packet;
+import com.ulric.mancala.UI.GUI;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -9,9 +10,15 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
@@ -27,7 +34,6 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
     
     public Registry registry;
     public MancalaInterface opponent;
-    public MancalaInterface player;
 
     private final boolean goesFirst;
     private boolean yourTurn;
@@ -41,19 +47,45 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
     
     public String playerName;
     
+    private GUI parentGUI;
+    
     private final Font stonesFont = new Font("Arial", Font.BOLD, 20);
     private final Font infoFont = new Font("Arial", Font.BOLD, 20);
 
     private int[] currentBoardState = new int[] { 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0 };
 
-    public GameController(Registry registry, boolean goesFirst, String playerName) {
+    public GameController(GUI parentGUI, boolean isServer, boolean goesFirst) {
         
-        this.registry = registry;
+        this.parentGUI = parentGUI;
+        this.playerName = this.parentGUI.setupScreen.playerName;
+        int portNumber = this.parentGUI.setupScreen.portNumber;
+        String hostNumber = this.parentGUI.setupScreen.hostNumber;
+        
+        
+        if(isServer){
+            try {
+                this.registry = LocateRegistry.createRegistry(portNumber);
+                this.registry.bind("//"+hostNumber+":"+portNumber+"/Server",this);
+                System.out.println("Server registry created. Waiting for a client...");
+            } catch (RemoteException | AlreadyBoundException ex) {
+                System.out.println("Server creation failed: " + ex);
+            }
+        }else{
+            try {
+                this.registry = LocateRegistry.getRegistry(portNumber);
+                this.registry.bind("//"+hostNumber+":"+portNumber+"/Client",this);
+                System.out.println("Client registry created");
+                this.opponent = (MancalaInterface) this.registry.lookup("//"+hostNumber+":"+portNumber+"/Server");
+                this.opponent.connectToOpponent();
+            } catch (RemoteException | AlreadyBoundException ex) {
+                System.out.println("Client registry error: " + ex);
+            } catch (NotBoundException ex) {
+                System.out.println("Client registry error - NotBound: " + ex);
+            }
+        }
         
         board = new Board();
 
-        this.playerName = playerName;
-        
         this.goesFirst = goesFirst;
 
         yourTurn = this.goesFirst == true;
@@ -339,18 +371,14 @@ public class GameController extends JPanel implements MouseListener, MancalaInte
     @Override public void mousePressed(MouseEvent e) {}
     @Override public void mouseReleased(MouseEvent e) {}
 
+    
     @Override
-    public void sendMessage(String playerName, String text) throws RemoteException {
+    public void updateChat(String playerName, String text) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void connectToServer() throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void connectToClient() throws RemoteException {
+    public void connectToOpponent() throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -8,9 +8,8 @@ import java.rmi.RemoteException;
  * @author Ulric
  */
 public interface MancalaInterface extends Remote {
-    public void connectToServer() throws  RemoteException;
-    public void connectToClient() throws  RemoteException;
-    public void sendMessage(String playerName, String text) throws  RemoteException;
+    public void connectToOpponent() throws  RemoteException;
+    public void updateChat(String playerName, String text) throws  RemoteException;
 }
 
 
