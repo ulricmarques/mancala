@@ -154,6 +154,12 @@ public class SetupScreen implements ActionListener, Serializable{
             playerName = inputNameHost.getText();
             boolean serverCreated = true;
             
+            try {
+                parentGUI.game = new GameController(parentGUI, true, true);
+            } catch (RemoteException ex) {
+                serverCreated = false;
+                System.out.println("ERROR: "  + ex);
+            }
             if(!serverCreated){
                 JOptionPane.showMessageDialog(null, "Não foi possível criar o servidor. "
                         + "A porta digitada pode estar ocupada.","Falha ao criar servidor", JOptionPane.ERROR_MESSAGE);
@@ -162,12 +168,12 @@ public class SetupScreen implements ActionListener, Serializable{
                 changePages.show(parentGUI.switchPanels, "main");
                 parentGUI.window.setSize(775, 595);
                 parentGUI.window.setLayout(new GridLayout(2,0));
+                parentGUI.window.add(parentGUI.game.painter);
                 try {
-                    parentGUI.game = new GameController(parentGUI, true, true);
+                    parentGUI.game.updateChat("SISTEMA", "Aguardando conexão do cliente...");
                 } catch (RemoteException ex) {
                     Logger.getLogger(SetupScreen.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                parentGUI.window.add(parentGUI.game.painter);
             }
         }
 
@@ -183,7 +189,15 @@ public class SetupScreen implements ActionListener, Serializable{
             playerName = inputNameJoin.getText();
       
             boolean connectionAccepted = true;
-            if(!connectionAccepted){
+            
+            try {
+                parentGUI.game = new GameController(parentGUI, false, false);
+            } catch (RemoteException ex) {
+                connectionAccepted = false;
+                System.out.println("ERROR: " + ex);
+            }
+            
+            if(parentGUI.game.waiting){
                 JOptionPane.showMessageDialog(null, "Não foi possível conectar ao servidor. "
                         + "Verifique os dados digitados e tente novamente.", "Falha ao conectar", JOptionPane.ERROR_MESSAGE);
             }
@@ -191,11 +205,6 @@ public class SetupScreen implements ActionListener, Serializable{
                 changePages.show(parentGUI.switchPanels, "main");
                 parentGUI.window.setSize(775, 595);
                 parentGUI.window.setLayout(new GridLayout(2,0));
-                try {
-                    parentGUI.game = new GameController(parentGUI, false, false);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(SetupScreen.class.getName()).log(Level.SEVERE, null, ex);
-                }
                 parentGUI.window.add(parentGUI.game.painter);
             }
         }

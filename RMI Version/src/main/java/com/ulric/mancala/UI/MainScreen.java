@@ -128,6 +128,7 @@ public class MainScreen implements ActionListener, Serializable {
             
             if(response == 0){
                 parentGUI.game.restartGame();
+                
             }
             
         }

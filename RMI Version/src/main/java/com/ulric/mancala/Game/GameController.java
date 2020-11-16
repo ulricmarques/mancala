@@ -45,6 +45,7 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
     private boolean draw = false;
     private boolean gameEnded = false;
     private boolean surrenderVictory = false;
+    public boolean waiting = true;
     
     private final Color stonesColor = new Color(0,0,0, (float) 0.5);
     private final Color infoColor = new Color(0,0,0);
@@ -67,6 +68,10 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
         this.portNumber = this.parentGUI.setupScreen.portNumber;
         this.hostNumber = this.parentGUI.setupScreen.hostNumber;
         
+        board = new Board();
+        
+        painter = new Painter();
+        
         if(isServer){
             try {
                 this.registry = LocateRegistry.createRegistry(portNumber);
@@ -87,6 +92,10 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
                 System.out.println(Arrays.toString(this.registry.list()));
                 this.opponent = (MancalaInterface) this.registry.lookup("//"+hostNumber+":"+portNumber+"/Server");
                 this.opponent.connectToOpponent();
+                this.opponent.updateChat("SISTEMA", "Cliente conectado. Partida iniciada");
+                this.updateChat("SISTEMA", "Conectado ao servidor. Partida iniciada");
+                this.waiting = false;
+                this.painter.addMouseListener(this.painter);   
             } catch (RemoteException | AlreadyBoundException ex) {
                 System.out.println("Client registry error: " + ex);
             } catch (NotBoundException ex) {
@@ -94,10 +103,6 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
             }
         }
         
-        board = new Board();
-        
-        painter = new Painter();
-
         this.goesFirst = goesFirst;
 
         yourTurn = this.goesFirst == true;
@@ -121,11 +126,10 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
         }
         painter.repaint();
-        
     }
     
     @Override
-    public void handleRestart(){
+    public void handleRestart() throws RemoteException {
         youWon = true;
         showEndgameInfo(true);
         resetBoard();
@@ -147,21 +151,20 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
         try {
             opponent.handleSurrender();
         } catch (RemoteException ex) {
-            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Exception thrown: " + ex);
         }
         finishGame();
-        
     }
     
     @Override
-    public void handleSurrender(){
+    public void handleSurrender() throws RemoteException {
         youWon = true;
         surrenderVictory = true;
         painter.repaint();
         finishGame();
     }
     
-      private void showEndgameInfo(boolean restart){
+    private void showEndgameInfo(boolean restart){
         String text;
         
         if(restart){
@@ -346,6 +349,8 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
     public void connectToOpponent() throws RemoteException {
         try {
             this.opponent = (MancalaInterface )registry.lookup("//"+hostNumber+":"+portNumber+"/Client");
+            this.waiting = false;
+            this.painter.addMouseListener(this.painter);
             System.out.println("Succesfully connected to client");
         } catch (NotBoundException | AccessException ex) {
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
@@ -366,9 +371,8 @@ public class GameController extends UnicastRemoteObject implements MancalaInterf
   
     class Painter extends JPanel implements MouseListener {
         public Painter() {
-
             setBorder(BorderFactory.createLineBorder(Color.black));
-            addMouseListener(this);      
+               
         }
 
         @Override
