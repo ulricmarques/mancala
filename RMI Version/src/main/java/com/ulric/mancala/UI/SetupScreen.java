@@ -72,14 +72,14 @@ public class SetupScreen implements ActionListener, Serializable{
         inputServerHost.setBounds(60, 130, 400, 40);
         inputServerHost.setText("localhost");
         inputServerHost.addActionListener(this);
-        labelServerIP = new JLabel("Digite o IP");
+        labelServerIP = new JLabel("Digite o IP do servidor de nomes:");
         labelServerIP.setBounds(60, 100, 300, 40);
         
         inputServerPort = new JTextField();
         inputServerPort.setBounds(60, 200, 400, 40);
         inputServerPort.addActionListener(this);
         inputServerPort.setText("5000");
-        labelServerPort = new JLabel("Digite a porta:");
+        labelServerPort = new JLabel("Digite a porta usada pelo servidor de nomes: ");
         labelServerPort.setBounds(60, 170, 400, 40);
         
         runHost = new JButton("Iniciar servidor");
@@ -110,14 +110,14 @@ public class SetupScreen implements ActionListener, Serializable{
         inputClientHost.setBounds(60, 130, 400, 40);
         inputClientHost.setText("localhost");
         inputClientHost.addActionListener(this);
-        labelClientIP = new JLabel("Digite o IP");
+        labelClientIP = new JLabel("Digite o IP do servidor de nomes:");
         labelClientIP.setBounds(60, 100, 300, 40);
 
         inputClientPort = new JTextField();
         inputClientPort.setBounds(60, 200, 400, 40);
         inputClientPort.addActionListener(this);
         inputClientPort.setText("5000");
-        labelClientPort = new JLabel("Digite a porta");
+        labelClientPort = new JLabel("Digite a porta usada pelo servidor de nomes:");
         labelClientPort.setBounds(60, 170, 300, 40);
         
 
